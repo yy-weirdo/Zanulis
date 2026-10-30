@@ -1,0 +1,2149 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Zanulis ― ごく最小限の動画編集を、とても簡単に</title>
+<style>
+  :root{
+    --bg:#F1F3F6;
+    --bg-alt:#FFFFFF;
+    --bg-panel:#FFFFFF;
+    --bg-soft:#E7EBF0;
+    --line:#D3DAE2;
+    --text:#1B212B;
+    --text-dim:#59626E;
+    --text-faint:#8A93A0;
+    --accent:#2E63D0;
+    --accent-hover:#274FA8;
+    --accent-text:#FFFFFF;
+    --accent2:#5C7A99;
+    --accent3:#7C93A8;
+    --danger:#D64545;
+    --radius:5px;
+    --header-h:48px;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  body{-webkit-font-smoothing:antialiased;}
+  .hidden{display:none !important;}
+  a{color:inherit;}
+  button{font-family:inherit;cursor:pointer;}
+
+  /* ---------- header (compact) ---------- */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    height:var(--header-h); padding:0 22px; border-bottom:1px solid var(--line);
+    position:sticky; top:0; background:rgba(255,255,255,0.97); backdrop-filter:blur(6px);
+    z-index:50;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; cursor:pointer; }
+  .logo-img{height:28px; display:block;}
+  .topbar-actions{display:flex; gap:8px; align-items:center;}
+  .topbar .btn{padding:6px 14px; font-size:13px;}
+
+  .btn{
+    border:1px solid var(--line); background:var(--bg-alt); color:var(--text);
+    padding:9px 16px; border-radius:5px; font-size:13.5px; font-weight:600;
+    transition:border-color .12s, background .12s, color .12s;
+  }
+  .btn:hover{border-color:var(--accent); background:var(--bg-soft);}
+  .btn-primary{ background:var(--accent); border-color:var(--accent); color:var(--accent-text); }
+  .btn-primary:hover{background:var(--accent-hover); border-color:var(--accent-hover);}
+  .btn-primary:disabled{background:var(--bg-soft); border-color:var(--line); color:var(--text-faint); cursor:not-allowed;}
+  .btn-ghost{border-color:transparent; background:transparent; color:var(--text-dim);}
+  .btn-ghost:hover{color:var(--text); background:var(--bg-soft); border-color:var(--line);}
+  .btn-sm{padding:6px 11px; font-size:12px; border-radius:5px;}
+  .btn-block{width:100%;}
+
+  /* ---------- scroll reveal (gentle) ---------- */
+  .reveal{ opacity:0; transform:translateY(14px); transition:opacity .9s ease, transform .9s ease; }
+  .reveal.in{ opacity:1; transform:none; }
+  @media (prefers-reduced-motion: reduce){
+    .reveal{ opacity:1; transform:none; transition:none; }
+  }
+
+  /* ---------- hero ---------- */
+  #landing .hero{
+    max-width:1080px; margin:0 auto; padding:56px 28px 44px;
+    display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.05fr); gap:36px; align-items:center;
+  }
+  .hero-text{min-width:0;}
+  .eyebrow-lg{ font-size:clamp(15px,1.9vw,19px); color:var(--accent); font-weight:700; margin-bottom:22px; line-height:1.6; max-width:520px; }
+  .hero h1{ font-size:clamp(36px,5.6vw,62px); line-height:1.02; margin:0 0 8px; letter-spacing:-1.5px; font-weight:800; color:var(--text); }
+  .hero h1 .accentline{color:var(--accent);}
+  .hero .tagline{ font-size:clamp(15px,1.8vw,17.5px); color:var(--text-dim); max-width:520px; margin:20px 0 6px; line-height:1.8; font-weight:400; }
+  .hero-cta{display:flex; align-items:center; gap:18px; margin-top:26px; flex-wrap:wrap;}
+  .btn-cta{
+    background:var(--accent); color:var(--accent-text); border:none;
+    padding:15px 28px; font-size:15.5px; font-weight:700; border-radius:5px; letter-spacing:0.2px;
+    transition:transform .12s, background .12s;
+  }
+  .btn-cta:hover{transform:translateY(-2px); background:var(--accent-hover);}
+
+  .hero-visual{ position:relative; width:100%; aspect-ratio:1 / 0.92; }
+  .hv{ position:absolute; will-change:transform; }
+  .hv img{
+    display:block; width:100%; height:auto; border-radius:10px;
+    border:1px solid var(--line); background:#fff;
+    box-shadow:0 16px 36px rgba(20,30,50,0.18), 0 2px 6px rgba(20,30,50,0.08);
+  }
+  .hv-a{ top:0; left:0; width:76%; z-index:1; transform:rotate(-1.2deg); }
+  .hv-b{ right:0; bottom:0; width:35%; z-index:2; transform:rotate(1.6deg); }
+
+  #landing section{max-width:920px; margin:0 auto; padding:46px 28px;}
+  .section-head{margin-bottom:34px;}
+  .section-head .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:2px; color:var(--accent2);
+    text-transform:uppercase; margin-bottom:13px; display:flex; align-items:center; gap:10px;
+  }
+  .section-head .eyebrow::before{content:"";width:20px;height:1px;background:var(--accent2);display:inline-block;}
+  .section-head h2{font-size:clamp(24px,3.6vw,34px); margin:0; letter-spacing:-0.5px; color:var(--text);}
+  .section-head p{color:var(--text-dim); margin:14px 0 0; max-width:620px; line-height:1.85; font-size:15.5px;}
+
+  .feature-list{display:flex; flex-direction:column;}
+  .feature-row{ padding:30px 0; border-bottom:1px solid var(--line); display:flex; gap:20px; align-items:flex-start; }
+  .feature-row:last-child{border-bottom:none;}
+  .feature-row .icon-wrap{
+    width:46px; height:46px; border-radius:6px; background:var(--bg-soft); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--accent2);
+  }
+  .feature-row h3{margin:0 0 8px; font-size:20px; font-weight:700; letter-spacing:-0.3px; color:var(--text);}
+  .feature-row p{margin:0; font-size:14.5px; color:var(--text-dim); line-height:1.8; max-width:600px;}
+
+  .closing-line{ margin-top:36px; font-size:15px; color:var(--text-dim); line-height:1.9; max-width:620px; }
+  .closing-line b{color:var(--text);}
+
+  .cta-bottom{max-width:920px; margin:0 auto; padding:64px 28px 96px;}
+  .cta-bottom h2{font-size:clamp(22px,3.6vw,32px); margin:0 0 8px; letter-spacing:-0.5px; color:var(--text);}
+
+  .credits-list{display:flex; flex-direction:column; gap:2px; margin-top:28px;}
+  .credit-item{
+    display:flex; align-items:center; gap:14px; padding:16px 6px; border-bottom:1px solid var(--line);
+    text-decoration:none; color:inherit; transition:background .12s; border-radius:5px;
+  }
+  .credit-item:last-child{border-bottom:none;}
+  .credit-item:hover{background:var(--bg-soft);}
+  .credit-avatar{
+    width:48px; height:48px; border-radius:50%; object-fit:cover; flex-shrink:0;
+    border:1px solid var(--line); background:var(--bg-soft);
+  }
+  .credit-info{display:flex; flex-direction:column; gap:3px;}
+  .credit-role{font-family:var(--mono); font-size:11px; color:var(--accent2); letter-spacing:0.5px;}
+  .credit-name{font-size:15px; font-weight:700; color:var(--text);}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line); padding:26px 28px 30px; text-align:center; background:var(--bg-alt);}
+  .footer-links{display:flex; flex-wrap:wrap; justify-content:center; gap:6px 22px; margin-bottom:16px;}
+  .footer-link{
+    background:transparent; border:none; padding:4px 2px; font-size:13px; color:var(--text-dim);
+    text-decoration:none; transition:color .12s;
+  }
+  .footer-link:hover{color:var(--accent); text-decoration:underline;}
+  .footer-copy{color:var(--text-faint); font-size:12px; font-family:var(--mono);}
+
+  .modal-overlay{ position:fixed; inset:0; background:rgba(20,24,30,0.55); display:flex; align-items:center; justify-content:center; z-index:200; padding:20px; }
+  .menu-panel{ background:var(--bg-alt); border:1px solid var(--line); border-radius:8px; width:100%; max-width:520px; max-height:82vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 12px 32px rgba(20,24,30,0.18); }
+  .menu-header{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid var(--line); flex-shrink:0; }
+  .menu-header .title{font-size:14.5px; font-weight:700; color:var(--text);}
+  .menu-body{padding:14px 10px 20px; overflow-y:auto;}
+  .menu-article{padding:4px 12px 8px;}
+  .menu-article h4{font-size:17px; margin:0 0 14px; color:var(--text);}
+  .menu-article p, .menu-article li{font-size:13px; color:var(--text-dim); line-height:1.9;}
+  .menu-article ul{padding-left:18px; margin:10px 0;}
+  .menu-article .hi{color:var(--accent); font-weight:700;}
+
+  .modal-box{ background:var(--bg-alt); border:1px solid var(--line); border-radius:6px; padding:32px 34px; text-align:center; min-width:280px; box-shadow:0 12px 32px rgba(20,24,30,0.18); }
+  .modal-box .spinner{ width:30px; height:30px; border-radius:50%; border:3px solid var(--line); border-top-color:var(--accent); margin:0 auto 16px; animation:spin 0.8s linear infinite; }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .modal-box p{font-family:var(--mono); font-size:12px; color:var(--text-dim); margin:0;}
+  .modal-box.text-left{text-align:left;}
+  .modal-box .mb-title{font-size:16px; font-weight:700; margin-bottom:10px; color:var(--text);}
+  .modal-box .mb-desc{font-family:var(--sans); font-size:13px; color:var(--text-dim); line-height:1.75; margin-bottom:16px;}
+  .modal-box .mb-row{display:flex; gap:10px;}
+  .modal-check{ display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-dim); margin-bottom:18px; cursor:pointer; user-select:none; }
+  .modal-check input{width:15px; height:15px; accent-color:var(--accent); flex-shrink:0;}
+
+  .ctx-menu{ position:fixed; background:var(--bg-alt); border:1px solid var(--line); border-radius:6px; box-shadow:0 10px 26px rgba(20,24,30,0.22); z-index:300; padding:4px; min-width:150px; }
+  .ctx-item{ display:block; width:100%; text-align:left; padding:9px 11px; font-size:12.5px; background:transparent; border:none; border-radius:4px; color:var(--text); }
+  .ctx-item:hover{background:var(--bg-soft);}
+  .ctx-item.danger{color:var(--danger);}
+
+  #editor-layout{ display:grid; grid-template-columns:1fr 360px; gap:0; min-height:calc(100vh - var(--header-h) - 1px); }
+  .editor-main{padding:22px 22px 56px; border-right:1px solid var(--line); overflow:hidden;}
+  .editor-side{padding:22px; overflow-y:auto; max-height:calc(100vh - var(--header-h) - 1px); position:sticky; top:var(--header-h);}
+
+  .restore-banner{ display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--bg-soft); border:1px solid var(--line); border-radius:5px; padding:11px 15px; margin-bottom:16px; font-size:12.5px; color:var(--text-dim); }
+  .restore-banner .actions{display:flex; gap:8px; flex-shrink:0;}
+
+  .preview-wrap{
+    background:#0B0D10; border-radius:var(--radius); overflow:hidden; border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; position:relative; min-height:240px;
+  }
+  .preview-wrap.drag{ outline:2px dashed var(--accent); outline-offset:-2px; }
+  #previewCanvas{ display:block; max-width:100%; max-height:52vh; width:auto; height:auto; margin:0 auto; image-rendering:optimizeSpeed; }
+  .preview-empty{ color:var(--text-faint); text-align:center; padding:54px 20px; }
+  .preview-empty .pe-icon{ font-size:32px; margin-bottom:12px; color:#5A6472; }
+  .preview-empty .pe-title{ font-size:20px; font-weight:700; color:#D7DEE6; margin-bottom:8px; }
+  .preview-empty .pe-sub{ font-size:13px; color:#8A93A0; margin-bottom:16px; }
+  #telopOverlay{position:absolute; pointer-events:none;}
+  .telop-handle{
+    position:absolute; transform:translate(-50%,-50%); pointer-events:auto; cursor:grab;
+    font-weight:800; color:#fff; white-space:nowrap; user-select:none; touch-action:none;
+    text-shadow:-1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000, 0 0 6px rgba(0,0,0,0.6);
+    padding:6px 10px; outline:1.5px dashed rgba(255,255,255,0.7); border-radius:4px;
+  }
+  .telop-handle:active{cursor:grabbing;}
+  .telop-hint{position:absolute; bottom:6px; left:50%; transform:translateX(-50%); font-family:var(--mono); font-size:10px; color:rgba(255,255,255,0.6); pointer-events:none; white-space:nowrap;}
+
+  .transport{display:flex; align-items:center; gap:12px; margin-top:14px;}
+  .transport-side{flex:1; display:flex; align-items:center;}
+  .transport-side-right{justify-content:flex-end;}
+  .transport-center{display:flex; align-items:center; gap:12px; flex-shrink:0;}
+  .play-btn{ width:40px; height:40px; border-radius:50%; background:var(--accent); border:none; color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background .12s; }
+  .play-btn:hover:not(:disabled){background:var(--accent-hover);}
+  .play-btn:disabled{opacity:0.35; cursor:not-allowed;}
+  .time-label{font-family:var(--mono); font-size:12px; color:var(--text-dim); white-space:nowrap;}
+  .add-telop-trigger{border-color:var(--accent); color:var(--accent); background:#EEF3FD; font-weight:700;}
+  .add-telop-trigger:hover:not(:disabled){background:var(--accent); color:#fff;}
+  .add-telop-trigger:disabled{background:var(--bg-soft); border-color:var(--line); color:var(--text-faint);}
+
+  .step-header{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .step-badge{
+    background:var(--accent); color:#fff; font-weight:800; font-size:11.5px; width:20px; height:20px;
+    border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .step-header h3{margin:0; font-size:14px; font-weight:700; color:var(--text);}
+
+  .side-block{margin-bottom:26px; padding-bottom:22px; border-bottom:1px solid var(--line);}
+  .side-block:last-child{border-bottom:none; margin-bottom:0;}
+  .panel-title{ font-family:var(--mono); font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-faint); margin-bottom:10px; margin-top:18px; }
+  .panel-title:first-of-type{margin-top:0;}
+  .panel-sub{font-size:11.5px; color:var(--text-faint); margin:8px 0 12px; line-height:1.65;}
+
+  .dropzone{
+    border:1.5px dashed var(--line); border-radius:var(--radius); padding:28px 14px; text-align:center;
+    color:var(--text-dim); font-size:12.5px; transition:border-color .12s, background .12s;
+  }
+  .dropzone.drag{border-color:var(--accent); background:#EEF3FD;}
+  .dropzone .icon{color:var(--text-faint); margin-bottom:8px;}
+  .dropzone b{color:var(--accent); text-decoration:underline; cursor:pointer;}
+
+  .clip-list{display:flex; flex-direction:column; gap:7px; margin-top:12px;}
+  .clip-card{ display:flex; align-items:center; gap:9px; background:var(--bg-alt); border:1px solid var(--line); border-radius:5px; padding:7px; cursor:pointer; }
+  .clip-card.selected{border-color:var(--accent);}
+  .clip-card img{width:52px; height:30px; object-fit:cover; border-radius:3px; background:#000; flex-shrink:0;}
+  .clip-card .info{flex:1; min-width:0;}
+  .clip-card .cname{font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text);}
+  .clip-card .cmeta{font-family:var(--mono); font-size:10px; color:var(--text-faint); margin-top:2px;}
+  .icon-btn{ width:23px; height:23px; border-radius:4px; border:1px solid var(--line); background:var(--bg-alt); color:var(--text-dim); display:flex; align-items:center; justify-content:center; font-size:10.5px; flex-shrink:0; }
+  .icon-btn:hover{color:var(--danger); border-color:var(--danger);}
+  .empty-panel{color:var(--text-faint); font-size:12px; font-family:var(--mono); padding:12px 0;}
+
+  .chip-grid{display:flex; flex-wrap:wrap; gap:7px;}
+  .chip{
+    border:1px solid var(--line); background:var(--bg-alt); color:var(--text-dim);
+    padding:8px 12px; border-radius:4px; font-size:12px; font-weight:700; transition:border-color .12s, color .12s, background .12s;
+  }
+  .chip:hover{color:var(--text); border-color:var(--accent); background:var(--bg-soft);}
+  .chip.active{ background:var(--accent); border-color:var(--accent); color:#fff; }
+
+  .switch{ width:38px; height:21px; border-radius:20px; background:var(--line); position:relative; border:none; flex-shrink:0; }
+  .switch.on{background:var(--accent);}
+  .switch::after{ content:""; width:15px; height:15px; border-radius:50%; background:#fff; position:absolute; top:3px; left:3px; transition:left .12s; }
+  .switch.on::after{left:20px;}
+
+  .field-row{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:4px;}
+  .field-row .lbl{font-size:12.5px; color:var(--text-dim); font-weight:600;}
+  .field-row .val{font-family:var(--mono); font-size:12px; color:var(--accent);}
+  input[type=range]{width:100%; accent-color:var(--accent);}
+  input[type=text].pf-input, input[type=number].pf-input{
+    width:100%; background:var(--bg-alt); border:1px solid var(--line); border-radius:4px; color:var(--text);
+    padding:8px 10px; font-size:13px;
+  }
+  .pf-grid2{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .pf-label{font-size:11px; color:var(--text-faint); font-family:var(--mono); display:block; margin-bottom:4px;}
+
+  .timeline-wrap{margin-top:18px;}
+  .timeline-body{display:flex; gap:8px;}
+  .tl-labels{width:46px; flex-shrink:0; display:flex; flex-direction:column; gap:6px;}
+  .tl-labels .tl-row-label{ height:44px; display:flex; align-items:center; font-size:11px; color:var(--text-faint); font-family:var(--mono); cursor:default; }
+  .tl-labels .tl-ruler-spacer{height:20px;}
+  .tl-labels .tl-telop-label-dyn{height:36px; cursor:pointer;}
+  .tl-labels .tl-telop-label-dyn.active-track{color:var(--accent); font-weight:700;}
+  .tl-tracks-col{position:relative; flex:1; display:flex; flex-direction:column; gap:6px;}
+  .tl-ruler{position:relative; height:20px;}
+  .tl-tick{position:absolute; top:0; bottom:0; border-left:1px solid var(--line);}
+  .tl-tick span{position:absolute; left:4px; top:1px; font-size:9px; font-family:var(--mono); color:var(--text-faint); white-space:nowrap;}
+  .tl-track{ position:relative; height:44px; background:var(--bg-alt); border:1px solid var(--line); border-radius:4px; overflow:visible; cursor:pointer; }
+  .tl-track-telop{height:36px;}
+  .tl-track-telop.active-track{border-color:var(--accent);}
+  .tl-empty-hint{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11.5px; color:var(--text-faint); pointer-events:none; }
+
+  .tl-bar{
+    position:absolute; top:2px; bottom:2px; border-radius:4px; overflow:hidden;
+    display:flex; align-items:stretch; border:1px solid rgba(0,0,0,0.15);
+  }
+  .tl-bar.video{background:var(--accent2);}
+  .tl-bar.image{background:var(--accent2);}
+  .tl-bar.audio{background:var(--accent3);}
+  .tl-bar.telop{background:var(--accent);}
+  .tl-bar.selected{outline:2px solid var(--text); outline-offset:1px; z-index:5;}
+  .tl-bar.dragging{ z-index:50; opacity:0.9; box-shadow:0 4px 12px rgba(0,0,0,0.2); }
+  .tl-bar-body{
+    flex:1; min-width:0; display:flex; align-items:center; padding:0 8px; cursor:grab;
+    color:#fff; font-size:11px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    user-select:none; touch-action:none;
+  }
+  .tl-bar-body:active{cursor:grabbing;}
+  .tl-handle{ width:9px; flex-shrink:0; background:rgba(0,0,0,0.18); cursor:ew-resize; touch-action:none; }
+  .tl-handle:hover{background:rgba(0,0,0,0.32);}
+
+  .timeline-playhead{
+    position:absolute; top:0; bottom:0; width:2px; background:#D64545; pointer-events:none; left:0; z-index:6;
+  }
+
+  .telop-handle.editing{ cursor:text; user-select:text; -webkit-user-select:text; outline:2px solid var(--accent); background:rgba(0,0,0,0.35); }
+
+  .crop-box{ width:100%; max-width:720px; }
+  .crop-stage{ position:relative; display:block; text-align:center; padding:10px; overflow:hidden; line-height:0; background:var(--bg-soft); border-radius:6px; user-select:none; -webkit-user-select:none; touch-action:none; }
+  .crop-inner{ position:relative; display:inline-block; }
+  .crop-inner img{ display:block; pointer-events:none; }
+  .crop-rect{ position:absolute; border:2px solid #fff; outline:1px solid var(--accent); box-shadow:0 0 0 9999px rgba(15,20,28,0.55); cursor:move; touch-action:none; }
+  .crop-h{ position:absolute; width:14px; height:14px; background:#fff; border:2px solid var(--accent); border-radius:3px; margin:-7px 0 0 -7px; touch-action:none; }
+
+  .faq-item{ border-bottom:1px solid var(--line); }
+  .faq-item summary{ cursor:pointer; padding:12px 4px; font-size:13.5px; font-weight:700; color:var(--text); list-style:none; display:flex; justify-content:space-between; gap:10px; line-height:1.6; }
+  .faq-item summary::-webkit-details-marker{ display:none; }
+  .faq-item summary::after{ content:"+"; color:var(--accent); font-weight:700; flex-shrink:0; }
+  .faq-item[open] summary::after{ content:"−"; }
+  .faq-a{ padding:0 4px 14px; font-size:13px; color:var(--text-dim); line-height:1.9; }
+  .faq-a b{ color:var(--text); }
+
+  @media (max-width:880px){
+    #editor-layout{grid-template-columns:1fr;}
+    .editor-side{position:static; max-height:none; border-top:1px solid var(--line);}
+  }
+  @media (max-width:820px){
+    #landing .hero{grid-template-columns:1fr; gap:34px; padding-top:40px;}
+    .hero-visual{max-width:520px; margin:0 auto;}
+  }
+  @media (max-width:520px){
+    .topbar{padding:0 14px;}
+  }
+  ::selection{background:var(--accent); color:#fff;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand" id="brandHome">
+    <img src="3157.png" alt="Zanulis" class="logo-img">
+  </div>
+  <div class="topbar-actions">
+    <span id="editorOnlyActions" style="display:none; gap:8px;">
+      <button class="btn btn-ghost" id="saveBtn">保存</button>
+      <button class="btn btn-primary" id="exportBtn">書き出す</button>
+    </span>
+    <button class="btn btn-primary" id="headerStartBtn">今すぐ始める</button>
+  </div>
+</div>
+
+<div id="landing">
+  <div class="hero">
+    <div class="hero-text reveal">
+      <div class="eyebrow-lg">ログイン不要・アカウント登録なしで、ブラウザだけで完結</div>
+      <h1>ごく最小限の<br>動画編集を、<br><span class="accentline">とても簡単に。</span></h1>
+      <p class="tagline">カット・字幕・速度・音量・逆再生まで、ログインなしで制作できる。アカウント登録不要。</p>
+      <div class="hero-cta">
+        <button class="btn-cta" id="startBtn">今すぐ始める →</button>
+      </div>
+    </div>
+
+    <div class="hero-visual reveal" id="heroVisual">
+      <div class="hv hv-a" id="hvA"><img src="image.png" alt="Zanulisのタイムライン編集画面"></div>
+      <div class="hv hv-b" id="hvB"><img src="said.png" alt="Zanulisの編集・書き出しパネル"></div>
+    </div>
+  </div>
+
+  <section>
+    <div class="section-head reveal">
+      <div class="eyebrow">できること</div>
+      <h2>タイムラインで、自由に組み立てる。</h2>
+      <p>動画・画像・音声・テロップをトラックに並べ、位置も長さもドラッグで調整できます。</p>
+    </div>
+    <div class="feature-list">
+      <div class="feature-row reveal">
+        <div class="icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="9" width="7" height="6" rx="1.5"/><rect x="14" y="9" width="7" height="6" rx="1.5"/><path d="M10 12h4" stroke-linecap="round"/></svg></div>
+        <div><h3>自由配置</h3><p>タイムライン上のクリップをドラッグして、好きなタイミングに移動できます。動画・画像と音声をずらして重ねることも可能です。</p></div>
+      </div>
+      <div class="feature-row reveal">
+        <div class="icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 6l12 12M6 18L18 6" stroke-linecap="round"/><circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/></svg></div>
+        <div><h3>トリミング</h3><p>クリップの両端をつまんでドラッグするだけで、長さを伸縮できます。画像は、表示する範囲の切り抜きもできます。</p></div>
+      </div>
+      <div class="feature-row reveal">
+        <div class="icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12a8 8 0 1 1 8 8" stroke-linecap="round"/><path d="M12 8v4l3 2" stroke-linecap="round"/></svg></div>
+        <div><h3>速度・音量</h3><p>0.25倍〜3倍の速度プリセットと、0〜200%まで増幅できる音量調整に対応しています。</p></div>
+      </div>
+      <div class="feature-row reveal">
+        <div class="icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 12a8 8 0 1 1-2.34-5.66" stroke-linecap="round"/><path d="M20 4v5h-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div><h3>逆再生</h3><p>選択したクリップをワンタップで逆再生に変換できます（音声はミュートされます）。</p></div>
+      </div>
+      <div class="feature-row reveal">
+        <div class="icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16M4 12h10M4 18h13" stroke-linecap="round"/></svg></div>
+        <div><h3>テロップ</h3><p>テキスト内容、表示の開始・終了時間を数値で指定でき、映像上のドラッグで位置も自由に調整できます。トラックは必要な分だけ追加できます。</p></div>
+      </div>
+      <div class="feature-row reveal">
+        <div class="icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 12l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div><h3>高画質で書き出し</h3><p>編集中のプレビューは軽さ優先で表示し、書き出し時には元の画質のまま指定した形式で仕上げられます。WebM・MP4に加えて、音声だけのMP3としても書き出せます。</p></div>
+      </div>
+    </div>
+    <p class="closing-line reveal"><b>本格的な組み立てを、ブラウザだけで。</b>細かい調整はしっかりできるようにしつつ、余計な設定画面は増やしていません。詳しい内容はページ下部の「サービス概要」からご覧いただけます。</p>
+  </section>
+
+  <div class="cta-bottom" id="creditsSection">
+    <div class="section-head reveal">
+      <div class="eyebrow">クレジット</div>
+      <h2>Zanulisに協力してくれた方々</h2>
+      <p>開発に協力してくれた方、開発のフィードバックを送ってくれた方</p>
+    </div>
+    <div class="credits-list">
+      <a class="credit-item reveal" href="https://x.com/yy_dev1633" target="_blank" rel="noopener noreferrer">
+        <img class="credit-avatar" src="unnamed.jpg" alt="y.y">
+        <div class="credit-info">
+          <span class="credit-role">開発者</span>
+          <span class="credit-name">y.y</span>
+        </div>
+      </a>
+      <a class="credit-item reveal" href="https://x.com/gkuikni" target="_blank" rel="noopener noreferrer">
+        <img class="credit-avatar" src="SDmQ4pRm_400x400.jpg" alt="めっちゃ初心者">
+        <div class="credit-info">
+          <span class="credit-role">ロゴ製作者</span>
+          <span class="credit-name">めっちゃ初心者</span>
+        </div>
+      </a>
+      <a class="credit-item reveal" href="https://x.com/ActiveTK5929" target="_blank" rel="noopener noreferrer">
+        <img class="credit-avatar" src="avatar.png" alt="ActiveTK.">
+        <div class="credit-info">
+          <span class="credit-name">ActiveTK.</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div id="editor" class="hidden">
+  <div id="editor-layout">
+    <div class="editor-main">
+      <div id="restoreBanner" class="restore-banner hidden">
+        <span>前回の続きが保存されています。</span>
+        <div class="actions">
+          <button class="btn btn-sm" id="restoreDismiss">閉じる</button>
+          <button class="btn btn-sm btn-primary" id="restoreBtn">復元する</button>
+        </div>
+      </div>
+
+      <div class="preview-wrap" id="previewWrap">
+        <canvas id="previewCanvas" class="hidden"></canvas>
+        <div id="telopOverlay"></div>
+        <div class="preview-empty" id="previewEmpty">
+          <div class="pe-icon">⬆</div>
+          <div class="pe-title">ここに動画・画像をドロップして追加</div>
+          <div class="pe-sub">動画・画像・音声を追加するとプレビューが表示されます</div>
+          <button class="btn btn-sm btn-primary" id="previewFileBtn">ファイルを選択</button>
+        </div>
+      </div>
+      <div class="transport">
+        <div class="transport-side"></div>
+        <div class="transport-center">
+          <button class="play-btn" id="playBtn" disabled>
+            <svg id="playIcon" width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8V4z"/></svg>
+          </button>
+          <div class="time-label"><span id="curTime">0:00.0</span> / <span id="totalTime">0:00.0</span></div>
+        </div>
+        <div class="transport-side transport-side-right">
+          <button class="btn btn-sm add-telop-trigger" id="addTelopBtn" disabled>＋ テロップを追加</button>
+        </div>
+      </div>
+      <div class="panel-sub" style="margin-top:8px;">タイムライン上のバーはドラッグで移動、端をつまんで伸縮できます。動画は上下にドラッグして動画1／動画2を移せます。テロップはプレビュー上のダブルクリックでも文字を編集できます。</div>
+
+      <div class="timeline-wrap">
+        <div class="timeline-body">
+          <div class="tl-labels" id="tlLabels">
+            <div class="tl-row-label tl-ruler-spacer"></div>
+            <div class="tl-row-label">動画1</div>
+            <div class="tl-row-label">動画2</div>
+            <div class="tl-row-label">画像</div>
+            <div class="tl-row-label">音声</div>
+          </div>
+          <div class="tl-tracks-col" id="timelineTracksCol">
+            <div class="tl-ruler" id="timelineRuler"></div>
+            <div class="tl-track" id="trackV1"><div class="tl-empty-hint" id="hintV1">動画をここに配置</div></div>
+            <div class="tl-track" id="trackV2"><div class="tl-empty-hint" id="hintV2">動画をここに配置（動画1の手前に表示）</div></div>
+            <div class="tl-track" id="trackImg"><div class="tl-empty-hint" id="hintImg">画像をここに配置</div></div>
+            <div class="tl-track" id="trackAudio"><div class="tl-empty-hint" id="hintAudio">音声・BGMをここに配置</div></div>
+            <div class="timeline-playhead" id="timelinePlayhead"></div>
+          </div>
+        </div>
+        <div style="margin-top:8px;"><button class="btn btn-sm" id="addTelopTrackBtn">＋ テロップのトラックを追加</button></div>
+      </div>
+    </div>
+
+    <div class="editor-side">
+      <div class="side-block">
+        <div class="step-header"><span class="step-badge">1</span><h3>動画・画像・音声を入れる</h3></div>
+        <div class="dropzone" id="dropzone">
+          <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V4M7 9l5-5 5 5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke-linecap="round"/></svg></div>
+          ここに動画・画像・音声をドロップして追加<br>または <b id="fileTrigger">ファイルを選択</b>
+          <input type="file" id="fileInput" accept="video/*,audio/*,image/*" multiple class="hidden">
+        </div>
+        <div class="clip-list" id="clipList"><div class="empty-panel">クリップがまだありません</div></div>
+      </div>
+
+      <div class="side-block">
+        <div class="step-header"><span class="step-badge">2</span><h3>編集する</h3></div>
+        <div id="propsPanel"><div class="empty-panel">タイムライン上のクリップやテロップをクリックすると、ここで編集できます</div></div>
+      </div>
+
+      <div class="side-block">
+        <div class="step-header"><span class="step-badge">3</span><h3>書き出す</h3></div>
+        <p class="panel-sub" style="margin-top:0;">プレビューは軽量表示です。書き出すと元の画質のまま、選んだ形式でファイルがダウンロードされます。</p>
+        <div class="panel-title">形式</div>
+        <div class="chip-grid" id="formatChips">
+          <button class="chip" data-format="webm">WebM</button>
+          <button class="chip" data-format="mp4">MP4</button>
+          <button class="chip" data-format="mp3">MP3</button>
+        </div>
+        <div class="panel-sub" id="formatNote">MP4はブラウザによって非対応の場合、自動でWebMに切り替わります。</div>
+        <button class="btn btn-primary btn-block" id="exportBtnSide" style="margin-top:6px;">書き出す</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-links">
+    <button class="footer-link" data-menu="overview">サービス概要</button>
+    <button class="footer-link" data-menu="faq">よくある質問</button>
+    <button class="footer-link" data-menu="terms">利用規約</button>
+    <button class="footer-link" data-menu="disclaimer">免責事項</button>
+    <button class="footer-link" data-menu="privacy">プライバシーポリシー</button>
+  </div>
+  <div class="footer-copy">ZANULIS — MINIMAL VIDEO EDITOR, IN YOUR BROWSER</div>
+</footer>
+
+<div id="loadingModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="spinner"></div>
+    <p id="loadingText">読み込み中...</p>
+  </div>
+</div>
+
+<div id="welcomeModal" class="modal-overlay hidden">
+  <div class="modal-box text-left" style="max-width:380px;">
+    <div class="mb-title">動画を追加してはじめましょう</div>
+    <p class="mb-desc">まずは編集したい動画・画像・音声ファイルを選んでください。あとから追加することもできます。</p>
+    <button class="btn btn-primary btn-block" id="welcomeFileBtn">動画・画像・音声ファイルを選択</button>
+    <button class="btn btn-ghost btn-block" id="welcomeSkipBtn" style="margin-top:8px;">あとで追加する</button>
+  </div>
+</div>
+
+<div id="menuOverlay" class="modal-overlay hidden">
+  <div class="menu-panel">
+    <div class="menu-header">
+      <span class="title" id="menuTitle">サービス概要</span>
+      <button class="icon-btn" id="menuClose">✕</button>
+    </div>
+    <div class="menu-body" id="menuBody"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const DEFAULT_TELOP_STYLE = { color:'#FFFFFF', stroke:'#000000', strokeW:0.10 };
+  const FONT_OPTIONS = {
+    gothic: { label:'ゴシック',   family:'"Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif', weight:800 },
+    mincho: { label:'明朝',       family:'"Hiragino Mincho ProN", "Yu Mincho", "MS PMincho", serif', weight:700 },
+    round:  { label:'丸ゴシック', family:'"Hiragino Maru Gothic ProN", "Arial Rounded MT Bold", "Yu Gothic", sans-serif', weight:800 },
+    pop:    { label:'極太',       family:'"Hiragino Sans", "Yu Gothic", "Arial Black", sans-serif', weight:900 },
+    mono:   { label:'等幅',       family:'ui-monospace, "SF Mono", Consolas, "MS Gothic", monospace', weight:700 },
+    hand:   { label:'手書き風',   family:'"Segoe Print", "Bradley Hand", "Hannotate SC", "Yu Kyokasho", cursive', weight:700 },
+  };
+  function fontOf(tp){ return FONT_OPTIONS[tp && tp.font] || FONT_OPTIONS.gothic; }
+  const IMAGE_DEFAULT_DURATION = 4;
+  const IMAGE_MAX_DURATION = 300;
+
+  const state = {
+    clips: [],
+    telops: [],
+    selectedClipId: null,
+    selectedTelopId: null,
+    isPlaying: false,
+    exporting: false,
+    currentGlobalTime: 0,
+    timelineDuration: 12,
+    telopTrackCount: 1,
+    activeTelopTrack: 0,
+    exportFormat: 'webm',
+    editingTelopId: null,
+  };
+  let audioCtx = null;
+  let uid = 0;
+  const genId = (p)=> p + (++uid) + '_' + Math.random().toString(36).slice(2,7);
+
+  const $ = (id)=>document.getElementById(id);
+  const els = {
+    landing: $('landing'), editor: $('editor'), editorOnlyActions: $('editorOnlyActions'),
+    headerStartBtn: $('headerStartBtn'),
+    previewWrap: $('previewWrap'),
+    canvas: $('previewCanvas'), previewEmpty: $('previewEmpty'), telopOverlay: $('telopOverlay'),
+    previewFileBtn: $('previewFileBtn'),
+    playBtn: $('playBtn'), playIcon: $('playIcon'),
+    curTime: $('curTime'), totalTime: $('totalTime'),
+    addTelopBtn: $('addTelopBtn'), addTelopTrackBtn: $('addTelopTrackBtn'),
+    dropzone: $('dropzone'), fileInput: $('fileInput'),
+    clipList: $('clipList'), propsPanel: $('propsPanel'),
+    tlLabels: $('tlLabels'),
+    timelineRuler: $('timelineRuler'),
+    timelineTracksCol: $('timelineTracksCol'),
+    timelinePlayhead: $('timelinePlayhead'),
+    loadingModal: $('loadingModal'), loadingText: $('loadingText'),
+    exportBtn: $('exportBtn'), exportBtnSide: $('exportBtnSide'), saveBtn: $('saveBtn'),
+    formatChips: $('formatChips'), formatNote: $('formatNote'),
+    restoreBanner: $('restoreBanner'), restoreBtn: $('restoreBtn'), restoreDismiss: $('restoreDismiss'),
+    welcomeModal: $('welcomeModal'), welcomeFileBtn: $('welcomeFileBtn'), welcomeSkipBtn: $('welcomeSkipBtn'),
+    menuOverlay: $('menuOverlay'), menuClose: $('menuClose'),
+    menuBody: $('menuBody'), menuTitle: $('menuTitle'),
+    heroVisual: $('heroVisual'), hvA: $('hvA'), hvB: $('hvB'),
+  };
+  els.laneTracks = { v1:$('trackV1'), v2:$('trackV2'), img:$('trackImg'), a:$('trackAudio') };
+  els.laneHints = { v1:$('hintV1'), v2:$('hintV2'), img:$('hintImg'), a:$('hintAudio') };
+
+  function ensureAudioCtx(){
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+  }
+  function showLoading(msg){ els.loadingText.textContent = msg; els.loadingModal.classList.remove('hidden'); }
+  function updateLoading(msg){ els.loadingText.textContent = msg; }
+  function hideLoading(){ els.loadingModal.classList.add('hidden'); }
+  function fmtTime(t){
+    if(!isFinite(t) || t<0) t=0;
+    const m = Math.floor(t/60);
+    const s = (t - m*60).toFixed(1);
+    return m + ':' + (s<10? '0':'') + s;
+  }
+  function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+  function removeContextMenu(){ const m=document.getElementById('ctxMenu'); if(m) m.remove(); }
+  function showContextMenu(x,y, items){
+    removeContextMenu();
+    const menu = document.createElement('div');
+    menu.className='ctx-menu'; menu.id='ctxMenu';
+    const vw = window.innerWidth, vh = window.innerHeight;
+    menu.style.left = Math.min(x, vw-170)+'px';
+    menu.style.top = Math.min(y, vh-120)+'px';
+    items.forEach(it=>{
+      const b=document.createElement('button');
+      b.textContent=it.label; b.className='ctx-item'+(it.danger?' danger':'');
+      b.addEventListener('click', (e)=>{ e.stopPropagation(); it.onClick(); removeContextMenu(); });
+      menu.appendChild(b);
+    });
+    document.body.appendChild(menu);
+    setTimeout(()=>{ window.addEventListener('click', removeContextMenu, {once:true}); },0);
+  }
+
+  // ---------- landing: gentle scroll reveal ----------
+  let revealObserver = null;
+  function setupReveal(){
+    const targets = Array.from(document.querySelectorAll('.reveal'));
+    if(!('IntersectionObserver' in window)){
+      targets.forEach(el=> el.classList.add('in'));
+      return;
+    }
+    revealObserver = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){
+          en.target.classList.add('in');
+          revealObserver.unobserve(en.target);
+        }
+      });
+    }, { threshold:0.12, rootMargin:'0px 0px -6% 0px' });
+    // small stagger for the hero and for rows that appear together
+    const hero = document.querySelectorAll('.hero .reveal');
+    hero.forEach(function(el,i){ el.style.transitionDelay = (i*0.15)+'s'; });
+    targets.forEach(function(el){ revealObserver.observe(el); });
+  }
+
+  // ---------- landing: hero images gentle floating ----------
+  let floatRaf = null;
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function floatLoop(now){
+    // hv-a: bigger image / hv-b: tall image. slow, small, out of phase.
+    const ay = Math.sin(now/2300)*5,       ar = -1.2 + Math.sin(now/3200)*0.5;
+    const by = Math.sin(now/1900 + 1.6)*6, br =  1.6 + Math.sin(now/2700 + 1)*0.7;
+    els.hvA.style.transform = 'translateY('+ay.toFixed(2)+'px) rotate('+ar.toFixed(3)+'deg)';
+    els.hvB.style.transform = 'translateY('+by.toFixed(2)+'px) rotate('+br.toFixed(3)+'deg)';
+    floatRaf = requestAnimationFrame(floatLoop);
+  }
+  function startFloat(){
+    if(reduceMotion || floatRaf) return;
+    floatRaf = requestAnimationFrame(floatLoop);
+  }
+  function stopFloat(){
+    if(floatRaf){ cancelAnimationFrame(floatRaf); floatRaf = null; }
+  }
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden) stopFloat();
+    else if(!els.landing.classList.contains('hidden')) startFloat();
+  });
+
+  function showEditorView(){
+    els.landing.classList.add('hidden');
+    els.editor.classList.remove('hidden');
+    els.editorOnlyActions.style.display = 'flex';
+    els.headerStartBtn.classList.add('hidden');
+    stopFloat();
+    ensureAudioCtx();
+    window.scrollTo(0,0);
+    requestAnimationFrame(()=>{
+      maybeShowRestoreBanner();
+      const restoreShown = pendingRestore && pendingRestore.clips && pendingRestore.clips.length;
+      if(!restoreShown && state.clips.length===0){ els.welcomeModal.classList.remove('hidden'); }
+    });
+  }
+  function goToEditor(){ localStorage.setItem('zanulis_visited','1'); showEditorView(); }
+  function goToLanding(){
+    stopPreview();
+    els.editor.classList.add('hidden');
+    els.landing.classList.remove('hidden');
+    els.editorOnlyActions.style.display = 'none';
+    els.headerStartBtn.classList.remove('hidden');
+    window.scrollTo(0,0);
+    startFloat();
+  }
+  function confirmLeaveEditor(){
+    if(localStorage.getItem('zanulis_hide_leave_confirm')==='1'){
+      return Promise.resolve(true);
+    }
+    return new Promise((resolve)=>{
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = '<div class="modal-box text-left" style="max-width:360px;">'
+        + '<div class="mb-title">編集内容から離れますか？</div>'
+        + '<p class="mb-desc">トップページの表示に切り替わります。編集中のデータはそのまま保持されます。</p>'
+        + '<label class="modal-check"><input type="checkbox" id="leaveNoShowAgain">これを二度と表示しない</label>'
+        + '<div class="mb-row">'
+        + '<button class="btn btn-block" id="leaveCancel">戻る</button>'
+        + '<button class="btn btn-primary btn-block" id="leaveOk">進む</button>'
+        + '</div></div>';
+      document.body.appendChild(overlay);
+      function persistIfChecked(){
+        const cb = overlay.querySelector('#leaveNoShowAgain');
+        if(cb && cb.checked){ localStorage.setItem('zanulis_hide_leave_confirm','1'); }
+      }
+      overlay.querySelector('#leaveCancel').addEventListener('click', ()=>{ persistIfChecked(); overlay.remove(); resolve(false); });
+      overlay.querySelector('#leaveOk').addEventListener('click', ()=>{ persistIfChecked(); overlay.remove(); resolve(true); });
+    });
+  }
+  $('startBtn').addEventListener('click', goToEditor);
+  els.headerStartBtn.addEventListener('click', goToEditor);
+  $('brandHome').addEventListener('click', async ()=>{
+    if(!els.editor.classList.contains('hidden')){
+      const ok = await confirmLeaveEditor();
+      if(ok) goToLanding();
+    }
+  });
+  window.addEventListener('resize', ()=>{ renderTelopOverlay(); renderTimeline(); });
+
+  els.previewFileBtn.addEventListener('click', (e)=>{ e.stopPropagation(); els.fileInput.click(); });
+  els.welcomeFileBtn.addEventListener('click', ()=>{ els.welcomeModal.classList.add('hidden'); els.fileInput.click(); });
+  els.welcomeSkipBtn.addEventListener('click', ()=>{ els.welcomeModal.classList.add('hidden'); });
+
+  function qa(q, a){ return '<details class="faq-item"><summary>'+q+'</summary><div class="faq-a">'+a+'</div></details>'; }
+  const FAQ_HTML = '<h4>よくある質問</h4>'
+    + qa('ログインやアカウント登録は必要ですか？', 'いいえ、必要ありません。ページを開いてファイルを選ぶだけで、すぐに使い始められます。')
+    + qa('アップロードした動画や画像は外部に送信されますか？', '送信されません。読み込んだファイルの処理は、すべてお使いのブラウザの中だけで行われます。')
+    + qa('「保存」と「書き出し」はどう違いますか？',
+        '<b>保存</b>は、編集中の「作業データ」（読み込んだ素材、タイムライン上の配置、速度・音量、トリミング、テロップなど）をお使いのブラウザ内に残す機能です。次に編集画面を開いたとき、「復元する」から続きを編集できます。動画ファイルとしては出力されず、別の端末や別のブラウザでは開けません。ブラウザのサイトデータを削除すると消えます。<br><br>'
+      + '<b>書き出し</b>は、編集結果を完成したファイル（WebM／MP4／MP3）としてダウンロードする機能です。スマホへの保存やSNS・動画サイトへの投稿など、Zanulis以外の場所で使えます。ただし、書き出したファイルからZanulis上で編集を再開することはできません。<br><br>'
+      + '続きを編集したいときは「保存」、完成品が欲しいときは「書き出し」です。迷ったら両方行うのがおすすめです。')
+    + qa('書き出せる形式は何ですか？', 'WebM、MP4、MP3の3種類です。MP4はブラウザによって非対応の場合があり、その場合は自動でWebMになります。MP3は映像を含まない、音声だけのファイルです。')
+    + qa('書き出しに時間がかかります。', '動画（WebM／MP4）は、編集内容を実際の再生と同じ速さで記録するため、動画の長さとほぼ同じ時間がかかります。書き出し中は別のタブに切り替えたり、画面を閉じたりしないでください。MP3は再生を待たずに変換するので、より短い時間で終わります。')
+    + qa('トラックはどう使い分けますか？', 'タイムラインには「動画1」「動画2」「画像」「音声」のトラックがあります。映像は、動画1、動画2、画像の順に手前へ重なって表示されます。動画のバーを上下にドラッグするか、動画を選択して「トラック」を切り替えると、動画1と動画2を行き来できます。画像トラックの画像は、動画の上に縦横比を保ったまま重ねて表示されます。')
+    + qa('画像をトリミング（切り抜き）するには？', '画像クリップを選択し、右側の「画像をトリミング…」を押します。表示された枠を、ドラッグで移動、四隅や辺をつまんで範囲を調整し、「適用」を押してください。「トリミングを解除」でいつでも元に戻せます。トリミングできるのは画像のみで、表示する長さは、タイムライン上のバーの端をドラッグして調整します。')
+    + qa('テロップの文字はどう編集しますか？', '「＋テロップを追加」で追加したあと、プレビュー上のテロップをダブルクリックすると、その場で文字を入力できます。Enterで確定します。ドラッグで位置を移動、ホイールやピンチで大きさを変更でき、右側のパネルやタイムライン上のバーの右クリックからも編集できます。');
+
+  const MENU_CONTENT = {
+    faq: { title: 'よくある質問', html: FAQ_HTML },
+    overview: {
+      title: 'サービス概要',
+      html: '<h4>Zanulisについて</h4>'
+        + '<p>Zanulisは、「<span class="hi">ごく最小限の動画編集を、とても簡単に</span>」をコンセプトにした、ブラウザだけで使える動画編集ツールです。ログインやアカウント登録は必要なく、ファイルを選んだその場ですぐに使い始められます。</p>'
+        + '<p>タイムラインは動画・画像・音声・テロップのトラックに分かれており、クリップをドラッグして自由な位置に配置したり、両端をつまんで長さを調整したりできます。速度・音量・逆再生・テロップの表示タイミングも、選択したクリップごとに細かく設定できます。</p>'
+        + '<p>書き出しはWebM・MP4の動画に加えて、音声のみのMP3にも対応しています。</p>'
+        + '<p>マルチトラックの重ね合わせや細かい調整には対応しつつ、本格的な色調補正やトランジションといった機能は、あえて対応していません。</p>'
+    },
+    terms: {
+      title: '利用規約',
+      html: '<h4>利用規約</h4>'
+        + '<p>本規約は、Zanulis（以下「本サービス」）の利用条件を定めるものです。利用者は本サービスを利用した時点で、本規約に同意したものとみなされます。</p>'
+        + '<ul>'
+        + '<li>本サービスは動画・音声編集を目的とした個人利用を想定しています。</li>'
+        + '<li>著作権を侵害するコンテンツの編集・作成、法令に違反する目的での利用は禁止します。</li>'
+        + '<li>本サービスの全部または一部は、予告なく変更・停止する場合があります。</li>'
+        + '<li>本規約は必要に応じて改定されることがあります。</li>'
+        + '</ul>'
+    },
+    disclaimer: {
+      title: '免責事項',
+      html: '<h4>免責事項</h4>'
+        + '<p>本サービスの利用によって生じたいかなる損害についても、運営者は責任を負いません。</p>'
+        + '<p>編集データはお使いの端末（ブラウザ）内にのみ保存されるため、ブラウザの設定変更やキャッシュ削除、端末の不具合などにより、データが失われる場合があります。重要な素材は編集前に必ずバックアップを取ってください。</p>'
+        + '<p>また、ご利用のブラウザやデバイスによっては、一部機能が正常に動作しない場合があります。</p>'
+    },
+    privacy: {
+      title: 'プライバシーポリシー',
+      html: '<h4>プライバシーポリシー</h4>'
+        + '<p><span class="hi">当サイトでは、広告を一切掲載していません。</span></p>'
+        + '<p><span class="hi">アップロードした動画・画像・音声ファイルはサーバーに送信されません。すべての処理はあなたのブラウザの中だけで行われます。</span></p>'
+        + '<p>「保存」機能を使った場合、編集データはお使いの端末のブラウザ内（IndexedDB）にのみ保存され、外部に送信されることはありません。保存したデータを削除したい場合は、ブラウザの設定からサイトデータを削除してください。</p>'
+    },
+  };
+  function openMenuArticle(key){
+    const c = MENU_CONTENT[key];
+    if(!c) return;
+    els.menuTitle.textContent = c.title;
+    els.menuBody.innerHTML = '<div class="menu-article">'+c.html+'</div>';
+    els.menuBody.scrollTop = 0;
+    els.menuOverlay.classList.remove('hidden');
+  }
+  document.querySelectorAll('footer [data-menu]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const key = btn.dataset.menu;
+      openMenuArticle(key);
+    });
+  });
+  els.menuClose.addEventListener('click', ()=> els.menuOverlay.classList.add('hidden'));
+  els.menuOverlay.addEventListener('click', (e)=>{ if(e.target===els.menuOverlay) els.menuOverlay.classList.add('hidden'); });
+
+  const DB_NAME='zanulis_db', STORE='projects';
+  function openDB(){
+    return new Promise((resolve,reject)=>{
+      const req = indexedDB.open(DB_NAME,1);
+      req.onupgradeneeded = ()=>{ req.result.createObjectStore(STORE); };
+      req.onsuccess = ()=> resolve(req.result);
+      req.onerror = ()=> reject(req.error);
+    });
+  }
+  async function idbSet(key,val){
+    const db = await openDB();
+    return new Promise((resolve,reject)=>{
+      const tx = db.transaction(STORE,'readwrite');
+      tx.objectStore(STORE).put(val,key);
+      tx.oncomplete=()=>resolve(); tx.onerror=()=>reject(tx.error);
+    });
+  }
+  async function idbGet(key){
+    const db = await openDB();
+    return new Promise((resolve,reject)=>{
+      const tx = db.transaction(STORE,'readonly');
+      const req = tx.objectStore(STORE).get(key);
+      req.onsuccess=()=>resolve(req.result); req.onerror=()=>reject(req.error);
+    });
+  }
+  let pendingRestore = null;
+  async function checkSavedProject(){ try{ pendingRestore = await idbGet('current'); }catch(e){ pendingRestore=null; } }
+  function maybeShowRestoreBanner(){
+    if(pendingRestore && pendingRestore.clips && pendingRestore.clips.length && state.clips.length===0){
+      els.restoreBanner.classList.remove('hidden');
+    }
+  }
+  els.restoreDismiss.addEventListener('click', ()=>{ els.restoreBanner.classList.add('hidden'); pendingRestore=null; });
+  els.restoreBtn.addEventListener('click', async ()=>{ els.restoreBanner.classList.add('hidden'); await restoreProject(); pendingRestore=null; });
+
+  async function saveProject(){
+    if(!state.clips.length){ alert('保存するクリップがありません'); return; }
+    showLoading('保存中...');
+    try{
+      const clipsData = state.clips.map(c=>({
+        name:c.name, type:c.type, blob:c.file, lane:c.lane||null, crop:c.crop||null, trackStart:c.trackStart,
+        trimStart:c.trimStart, trimEnd:c.trimEnd, speed:c.speed, volume:c.volume,
+      }));
+      const telopsData = state.telops.map(t=>({...t}));
+      await idbSet('current', { clips: clipsData, telops: telopsData, telopTrackCount: state.telopTrackCount, savedAt: Date.now() });
+      hideLoading();
+      const orig = els.saveBtn.textContent;
+      els.saveBtn.textContent = '保存しました ✓';
+      setTimeout(()=>{ els.saveBtn.textContent = orig; }, 1600);
+    }catch(e){ hideLoading(); alert('保存に失敗しました（ファイルが大きすぎる可能性があります）'); }
+  }
+  els.saveBtn.addEventListener('click', saveProject);
+
+  async function restoreProject(){
+    const data = pendingRestore || await idbGet('current');
+    if(!data || !data.clips || !data.clips.length) return;
+    showLoading('前回の続きを読み込み中...');
+    for(const cd of data.clips){
+      try{
+        const clip = await createClip(cd.blob, cd.name);
+        clip.trackStart = cd.trackStart || 0;
+        clip.trimStart = Math.min(cd.trimStart, clip.duration);
+        clip.trimEnd = Math.min(cd.trimEnd, clip.duration);
+        clip.speed = cd.speed || 1;
+        clip.volume = cd.volume==null ? 1 : cd.volume;
+        if(clip.type==='video') clip.lane = (cd.lane==='v2') ? 'v2' : 'v1';
+        if(clip.type==='image' && cd.crop){ clip.crop = cd.crop; clip.thumbUrl = makeImageThumb(clip); }
+        if(clip.type !== 'image'){
+          setupAudioGraph(clip);
+          if(clip.audioGain) clip.audioGain.gain.value = clip.volume;
+        }
+        state.clips.push(clip);
+      }catch(e){}
+    }
+    state.telops = (data.telops||[]).map(t=>Object.assign({}, t, {track: t.track||0}));
+    let maxTrack = 0;
+    state.telops.forEach(t=>{ if((t.track||0)+1>maxTrack) maxTrack=(t.track||0)+1; });
+    state.telopTrackCount = Math.max(1, data.telopTrackCount||1, maxTrack);
+    hideLoading();
+    computeTimelineDuration(); renderClipList(); renderTimeline(); renderPropsPanel();
+  }
+
+  function wireDropTarget(el){
+    el.addEventListener('click', ()=>{ if(el===els.dropzone) els.fileInput.click(); });
+    ['dragover','dragenter'].forEach(ev=> el.addEventListener(ev, (e)=>{ e.preventDefault(); el.classList.add('drag'); }));
+    ['dragleave','drop'].forEach(ev=> el.addEventListener(ev, (e)=>{ e.preventDefault(); el.classList.remove('drag'); }));
+    el.addEventListener('drop', (e)=>{ if(e.dataTransfer.files && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
+  }
+  wireDropTarget(els.dropzone);
+  wireDropTarget(els.previewWrap);
+  els.fileInput.addEventListener('change', (e)=> handleFiles(e.target.files));
+
+  function seekTo(media, t){
+    return new Promise((resolve)=>{
+      if(Math.abs(media.currentTime-t) < 0.01){ resolve(); return; }
+      const onSeeked = ()=>{ media.removeEventListener('seeked', onSeeked); resolve(); };
+      media.addEventListener('seeked', onSeeked);
+      try{ media.currentTime = t; } catch(e){ resolve(); }
+      setTimeout(resolve, 400);
+    });
+  }
+
+  function makeAudioThumb(){
+    const c = document.createElement('canvas'); c.width=160; c.height=90;
+    const cx = c.getContext('2d');
+    cx.fillStyle = '#E7EBF0'; cx.fillRect(0,0,160,90);
+    cx.strokeStyle = '#5C7A99'; cx.lineWidth=2; cx.lineCap='round';
+    const bars=[14,26,40,20,32,44,18,28,36,16];
+    const barW=8, gap=6, startX=20;
+    cx.beginPath();
+    bars.forEach((h,i)=>{ const x=startX+i*(barW+gap); cx.moveTo(x,45-h/2); cx.lineTo(x,45+h/2); });
+    cx.stroke();
+    return c.toDataURL('image/png');
+  }
+
+  function getBaseSize(){
+    const v = state.clips.find(c=> c.type==='video' && c.video.videoWidth);
+    if(v) return {w:v.video.videoWidth, h:v.video.videoHeight};
+    const im = state.clips.find(c=> c.type==='image' && c.naturalWidth);
+    if(im){
+      const cr = im.crop || {x:0,y:0,w:1,h:1};
+      return {w:Math.max(2,Math.round(im.naturalWidth*cr.w)), h:Math.max(2,Math.round(im.naturalHeight*cr.h))};
+    }
+    return {w:960,h:540};
+  }
+
+  function createClip(fileOrBlob, overrideName){
+    return new Promise((resolve, reject)=>{
+      const fType = fileOrBlob.type || '';
+      const isAudio = fType.startsWith('audio/');
+      const isImage = fType.startsWith('image/');
+      const url = URL.createObjectURL(fileOrBlob);
+      const name = overrideName || fileOrBlob.name || (isAudio ? '音声ファイル' : (isImage ? '画像ファイル' : '動画ファイル'));
+
+      if(isImage){
+        const img = new Image();
+        img.onload = ()=>{
+          const clip = {
+            id: genId('clip'), name, type: 'image',
+            video: img, url, file: fileOrBlob,
+            duration: IMAGE_MAX_DURATION,
+            trackStart: 0,
+            trimStart: 0, trimEnd: IMAGE_DEFAULT_DURATION,
+            speed: 1, volume: 1, reverse: false, reversedData: null,
+            thumbUrl: null, audioGain: null,
+            naturalWidth: img.naturalWidth, naturalHeight: img.naturalHeight,
+          };
+          try{
+            const c = document.createElement('canvas'); c.width=160; c.height=90;
+            const cx = c.getContext('2d');
+            drawCover(cx, img, img.naturalWidth, img.naturalHeight, 160, 90);
+            clip.thumbUrl = c.toDataURL('image/jpeg',0.7);
+          }catch(e){}
+          resolve(clip);
+        };
+        img.onerror = ()=> reject(new Error('ファイルの読み込みに失敗しました：' + name));
+        img.src = url;
+        return;
+      }
+
+      const media = document.createElement(isAudio ? 'audio' : 'video');
+      media.src = url; media.preload = 'auto';
+      if(!isAudio) media.playsInline = true;
+      media.muted = false;
+      media.addEventListener('loadedmetadata', async ()=>{
+        const clip = {
+          id: genId('clip'), name, type: isAudio ? 'audio' : 'video',
+          video: media, url, file: fileOrBlob,
+          duration: media.duration,
+          trackStart: 0,
+          trimStart: 0, trimEnd: media.duration,
+          speed: 1, volume: 1, reverse: false, reversedData: null,
+          thumbUrl: null, audioGain: null,
+        };
+        if(!isAudio){
+          try{
+            const seekT = Math.min(0.2, media.duration/2);
+            await seekTo(media, seekT);
+            const c = document.createElement('canvas'); c.width=160; c.height=90;
+            const cx = c.getContext('2d'); cx.drawImage(media,0,0,160,90);
+            clip.thumbUrl = c.toDataURL('image/jpeg',0.7);
+          }catch(e){}
+        } else { clip.thumbUrl = makeAudioThumb(); }
+        resolve(clip);
+      }, {once:true});
+      media.addEventListener('error', ()=> reject(new Error('ファイルの読み込みに失敗しました：' + name)));
+    });
+  }
+
+  function setupAudioGraph(clip){
+    try{
+      ensureAudioCtx();
+      const source = audioCtx.createMediaElementSource(clip.video);
+      const gain = audioCtx.createGain();
+      gain.gain.value = clip.volume;
+      source.connect(gain);
+      gain.connect(audioCtx.destination);
+      clip.audioGain = gain;
+    }catch(e){}
+  }
+
+  async function handleFiles(fileList){
+    const files = Array.from(fileList).filter(f=> f.type.startsWith('video/') || f.type.startsWith('audio/') || f.type.startsWith('image/'));
+    if(!files.length) return;
+    els.welcomeModal.classList.add('hidden');
+    showLoading('読み込み中...');
+    let appendAt = state.clips.reduce((m,c)=> Math.max(m, c.trackStart+clipDuration(c)), 0);
+    for(const file of files){
+      try{
+        const clip = await createClip(file);
+        clip.trackStart = appendAt;
+        if(clip.type !== 'image') setupAudioGraph(clip);
+        state.clips.push(clip);
+        appendAt += clipDuration(clip);
+      }catch(err){ alert(err.message); }
+    }
+    hideLoading();
+    computeTimelineDuration(); renderClipList(); renderTimeline();
+    els.fileInput.value = '';
+  }
+
+  function clipDuration(clip){
+    if(clip.reverse && clip.reversedData) return clip.reversedData.frames.length / clip.reversedData.fps;
+    return Math.max(0.05, (clip.trimEnd - clip.trimStart) / clip.speed);
+  }
+  function computeTimelineDuration(){
+    let maxEnd = 8;
+    state.clips.forEach(c=> maxEnd = Math.max(maxEnd, c.trackStart + clipDuration(c)));
+    state.telops.forEach(t=> maxEnd = Math.max(maxEnd, t.start + t.duration));
+    state.timelineDuration = Math.max(8, maxEnd + 4);
+    els.totalTime.textContent = fmtTime(maxEnd);
+    els.playBtn.disabled = (state.clips.length===0 && state.telops.length===0);
+    els.addTelopBtn.disabled = false;
+    if(state.clips.length){ els.canvas.classList.remove('hidden'); els.previewEmpty.classList.add('hidden'); }
+    else { els.canvas.classList.add('hidden'); els.previewEmpty.classList.remove('hidden'); }
+  }
+
+  function clipMetaLabel(clip){
+    if(clip.type==='audio') return '♪ ' + fmtTime(clipDuration(clip));
+    if(clip.type==='image') return '🖼 ' + fmtTime(clipDuration(clip));
+    return fmtTime(clipDuration(clip));
+  }
+
+  function renderClipList(){
+    if(!state.clips.length){ els.clipList.innerHTML = '<div class="empty-panel">クリップがまだありません</div>'; return; }
+    els.clipList.innerHTML = '';
+    state.clips.forEach((clip)=>{
+      const card = document.createElement('div');
+      card.className = 'clip-card' + (clip.id===state.selectedClipId?' selected':'');
+      card.innerHTML = '<img src="'+(clip.thumbUrl||'')+'" alt="">'
+        + '<div class="info"><div class="cname">'+escapeHtml(clip.name)+'</div>'
+        + '<div class="cmeta">'+clipMetaLabel(clip)+'</div></div>'
+        + '<button class="icon-btn" data-act="del" title="削除">✕</button>';
+      card.addEventListener('click', (e)=>{
+        if(e.target.closest('[data-act]')) return;
+        selectEntity('clip', clip.id);
+        renderFrameAtGlobalTime(clip.trackStart);
+      });
+      card.querySelector('[data-act=del]').addEventListener('click', (e)=>{ e.stopPropagation(); deleteClip(clip.id); });
+      els.clipList.appendChild(card);
+    });
+  }
+  function deleteClip(id){
+    const clip = state.clips.find(c=>c.id===id);
+    if(!clip) return;
+    stopPreview();
+    try{ clip.video.pause(); }catch(e){}
+    const stillUsed = state.clips.filter(c=>c.id!==id && c.url===clip.url).length>0;
+    if(!stillUsed){ try{ URL.revokeObjectURL(clip.url); }catch(e){} }
+    state.clips = state.clips.filter(c=>c.id!==id);
+    if(state.selectedClipId===id) state.selectedClipId=null;
+    computeTimelineDuration(); renderClipList(); renderTimeline(); renderPropsPanel();
+  }
+
+  async function extractReverseFrames(clip, onProgress){
+    const fps = 12;
+    const video=clip.video, trimStart=clip.trimStart, trimEnd=clip.trimEnd;
+    const w = video.videoWidth, h = video.videoHeight;
+    const off = document.createElement('canvas'); off.width=w; off.height=h;
+    const octx = off.getContext('2d');
+    const total = Math.max(1, Math.floor((trimEnd - trimStart) * fps));
+    const frames = [];
+    for(let i=0;i<total;i++){
+      const t = Math.min(trimStart + i/fps, trimEnd - 0.001);
+      await seekTo(video, t);
+      octx.drawImage(video, 0, 0, w, h);
+      frames.push(await createImageBitmap(off));
+      if(onProgress) onProgress(Math.round(((i+1)/total)*100));
+    }
+    frames.reverse();
+    clip.reversedData = { frames, fps, w, h };
+  }
+
+  function selectEntity(kind, id){
+    if(kind==='clip'){ state.selectedClipId = id; state.selectedTelopId = null; }
+    else { state.selectedTelopId = id; state.selectedClipId = null; }
+    renderClipList(); markSelectedBars(); renderTelopOverlay(); renderPropsPanel();
+  }
+  function markSelectedBars(){
+    document.querySelectorAll('.tl-bar').forEach(function(el){
+      const id = el.dataset.id;
+      el.classList.toggle('selected', id===state.selectedClipId || id===state.selectedTelopId);
+    });
+  }
+  function refreshBarLabel(id, text){
+    const bar = document.querySelector('.tl-bar[data-id="'+id+'"]');
+    if(bar){ const body = bar.querySelector('.tl-bar-body'); if(body) body.textContent = text; }
+  }
+
+  function renderPropsPanel(){
+    if(state.selectedClipId){
+      const clip = state.clips.find(c=>c.id===state.selectedClipId);
+      if(!clip){ els.propsPanel.innerHTML = '<div class="empty-panel">タイムライン上のクリップやテロップをクリックすると、ここで編集できます</div>'; return; }
+
+      if(clip.type==='image'){
+        els.propsPanel.innerHTML = '<div style="font-size:13px;font-weight:700;margin-bottom:14px;color:var(--text);">'+escapeHtml(clip.name)+'</div>'
+          + '<div class="panel-title">トリミング（切り抜き）</div>'
+          + '<button class="btn btn-sm btn-block" id="cropBtn">画像をトリミング…</button>'
+          + (clip.crop ? '<button class="btn btn-sm btn-block btn-ghost" id="cropResetBtn" style="margin-top:6px;">トリミングを解除</button>' : '')
+          + '<div class="panel-sub">画像はタイムライン上のバーの端をドラッグすると、表示時間を調整できます。</div>'
+          + '<button class="btn btn-sm btn-block" id="deleteClipBtn" style="margin-top:18px;">このクリップを削除</button>';
+        $('cropBtn').addEventListener('click', ()=> openCropEditor(clip));
+        const crb = $('cropResetBtn');
+        if(crb) crb.addEventListener('click', ()=>{
+          clip.crop = null; clip.thumbUrl = makeImageThumb(clip);
+          afterCropChange();
+        });
+        $('deleteClipBtn').addEventListener('click', ()=> deleteClip(clip.id));
+        return;
+      }
+
+      const speeds = [0.25,0.5,1,1.5,2,3];
+      let speedHtml = '';
+      speeds.forEach(v=>{ speedHtml += '<button class="chip '+(clip.speed===v?'active':'')+'" data-speed="'+v+'">'+v+'x</button>'; });
+      let laneHtml = '';
+      if(clip.type==='video'){
+        const ln = laneOf(clip);
+        laneHtml = '<div class="panel-title">トラック</div><div class="chip-grid" id="laneChips">'
+          + '<button class="chip '+(ln==='v1'?'active':'')+'" data-lane="v1">動画1</button>'
+          + '<button class="chip '+(ln==='v2'?'active':'')+'" data-lane="v2">動画2</button></div>';
+      }
+      let reverseHtml = '';
+      if(clip.type==='video'){
+        reverseHtml = '<div class="panel-title">逆再生</div>'
+          + '<div class="field-row"><span class="lbl">選択範囲を逆再生にする（音声はミュート）</span>'
+          + '<button class="switch '+(clip.reverse?'on':'')+'" id="reverseToggle"></button></div>';
+      }
+      els.propsPanel.innerHTML = '<div style="font-size:13px;font-weight:700;margin-bottom:14px;color:var(--text);">'+escapeHtml(clip.name)+'</div>'
+        + laneHtml
+        + '<div class="panel-title">速度</div><div class="chip-grid" id="speedChips">'+speedHtml+'</div>'
+        + '<div class="panel-title">音量</div>'
+        + '<div class="field-row"><span class="lbl">Volume</span><span class="val" id="volVal">'+Math.round(clip.volume*100)+'%</span></div>'
+        + '<input type="range" id="volSlider" min="0" max="2" step="0.05" value="'+clip.volume+'">'
+        + reverseHtml
+        + '<button class="btn btn-sm btn-block" id="deleteClipBtn" style="margin-top:18px;">このクリップを削除</button>';
+      els.propsPanel.querySelectorAll('[data-speed]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          clip.speed = parseFloat(btn.dataset.speed);
+          clip.reversedData = null;
+          computeTimelineDuration(); renderTimeline(); renderPropsPanel();
+        });
+      });
+      els.propsPanel.querySelectorAll('[data-lane]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          clip.lane = btn.dataset.lane;
+          renderTimeline(); renderPropsPanel();
+          renderFrameAtGlobalTime(state.currentGlobalTime);
+        });
+      });
+      $('volSlider').addEventListener('input', (e)=>{
+        clip.volume = parseFloat(e.target.value);
+        $('volVal').textContent = Math.round(clip.volume*100)+'%';
+        if(clip.audioGain) clip.audioGain.gain.value = clip.volume;
+      });
+      const rt = $('reverseToggle');
+      if(rt){
+        rt.addEventListener('click', async ()=>{
+          const turningOn = !clip.reverse;
+          if(turningOn && !clip.reversedData){
+            showLoading('逆再生用のフレームを生成中... 0%');
+            await extractReverseFrames(clip, (p)=> updateLoading('逆再生用のフレームを生成中... ' + p + '%'));
+            hideLoading();
+          }
+          clip.reverse = turningOn;
+          computeTimelineDuration(); renderTimeline(); renderPropsPanel();
+        });
+      }
+      $('deleteClipBtn').addEventListener('click', ()=> deleteClip(clip.id));
+    } else if(state.selectedTelopId){
+      const tp = state.telops.find(t=>t.id===state.selectedTelopId);
+      if(!tp){ els.propsPanel.innerHTML = '<div class="empty-panel">タイムライン上のクリップやテロップをクリックすると、ここで編集できます</div>'; return; }
+      let fontChipsHtml = '';
+      Object.keys(FONT_OPTIONS).forEach(function(k){
+        const f = FONT_OPTIONS[k];
+        fontChipsHtml += '<button class="chip '+((tp.font||'gothic')===k?'active':'')+'" data-font="'+k+'" style="font-family:'+f.family.replace(/"/g,"'")+'; font-weight:'+f.weight+';">'+f.label+'</button>';
+      });
+      els.propsPanel.innerHTML = '<div class="panel-title">テロップのテキスト</div>'
+        + '<input type="text" class="pf-input" id="tpText" maxlength="60" value="'+escapeHtml(tp.text)+'">'
+        + '<div class="panel-title">フォント</div>'
+        + '<div class="chip-grid" id="fontChips">'+fontChipsHtml+'</div>'
+        + '<div class="panel-sub">映像上のテキストをダブルクリックすると文字を直接編集でき、ドラッグすると表示位置（X/Y）を変更できます。ホイールやピンチでサイズも調整できます。タイムライン上のバーは右クリックでも編集・削除できます。</div>'
+        + '<button class="btn btn-sm btn-block" id="deleteTelopBtn" style="margin-top:6px;">このテロップを削除</button>';
+      $('tpText').addEventListener('input', (e)=>{ tp.text = e.target.value; refreshBarLabel(tp.id, tp.text || 'テロップ'); redrawCanvasOnly(state.currentGlobalTime); renderTelopOverlay(); });
+      els.propsPanel.querySelectorAll('[data-font]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          tp.font = btn.dataset.font;
+          els.propsPanel.querySelectorAll('[data-font]').forEach(function(b2){ b2.classList.toggle('active', b2===btn); });
+          redrawCanvasOnly(state.currentGlobalTime);
+          renderTelopOverlay();
+        });
+      });
+      $('deleteTelopBtn').addEventListener('click', ()=> deleteTelop(tp.id));
+    } else {
+      els.propsPanel.innerHTML = '<div class="empty-panel">タイムライン上のクリップやテロップをクリックすると、ここで編集できます</div>';
+    }
+  }
+  // ---- image crop editor (images only) ----
+  function afterCropChange(){
+    computeTimelineDuration(); renderClipList(); renderPropsPanel();
+    renderFrameAtGlobalTime(state.currentGlobalTime);
+  }
+  function openCropEditor(clip){
+    stopPreview();
+    const ov = document.createElement('div');
+    ov.className = 'modal-overlay';
+    const defs = [['nw',0,0,'nwse-resize'],['n',50,0,'ns-resize'],['ne',100,0,'nesw-resize'],['e',100,50,'ew-resize'],['se',100,100,'nwse-resize'],['s',50,100,'ns-resize'],['sw',0,100,'nesw-resize'],['w',0,50,'ew-resize']];
+    let hs = '';
+    defs.forEach(function(h){ hs += '<div class="crop-h" data-h="'+h[0]+'" style="left:'+h[1]+'%;top:'+h[2]+'%;cursor:'+h[3]+';"></div>'; });
+    ov.innerHTML = '<div class="modal-box text-left crop-box">'
+      + '<div class="mb-title">画像をトリミング</div>'
+      + '<p class="mb-desc">枠をドラッグして移動、四隅や辺をつまんで範囲を調整します。枠の外側が切り取られます。</p>'
+      + '<div class="crop-stage"><div class="crop-inner" id="cropInner"><img id="cropImg" alt="" src="'+clip.url+'" draggable="false"><div class="crop-rect" id="cropRect">'+hs+'</div></div></div>'
+      + '<div class="mb-row" style="margin-top:16px;">'
+      + '<button class="btn" id="cropReset">リセット</button>'
+      + '<button class="btn btn-block" id="cropCancel">キャンセル</button>'
+      + '<button class="btn btn-primary btn-block" id="cropOk">適用</button></div></div>';
+    document.body.appendChild(ov);
+    const img = ov.querySelector('#cropImg'), inner = ov.querySelector('#cropInner'), rect = ov.querySelector('#cropRect');
+    const nw = clip.naturalWidth, nh = clip.naturalHeight;
+    const maxW = Math.max(160, Math.min(window.innerWidth*0.9 - 90, 640)), maxH = Math.max(120, window.innerHeight*0.5);
+    const sc = Math.min(maxW/nw, maxH/nh, 1);
+    img.style.width = Math.round(nw*sc)+'px'; img.style.height = Math.round(nh*sc)+'px';
+    let c = Object.assign({}, cropOf(clip));
+    const clamp = function(v,a,b){ return Math.min(b, Math.max(a, v)); };
+    function updateRect(){
+      rect.style.left = (c.x*100)+'%'; rect.style.top = (c.y*100)+'%';
+      rect.style.width = (c.w*100)+'%'; rect.style.height = (c.h*100)+'%';
+    }
+    updateRect();
+    let drag = null;
+    rect.addEventListener('pointerdown', function(e){
+      e.preventDefault(); e.stopPropagation();
+      drag = { h: e.target.dataset.h || 'move', sx:e.clientX, sy:e.clientY, c:Object.assign({}, c), r:inner.getBoundingClientRect() };
+      try{ rect.setPointerCapture(e.pointerId); }catch(err){}
+    });
+    rect.addEventListener('pointermove', function(e){
+      if(!drag) return;
+      const dx = (e.clientX-drag.sx)/drag.r.width, dy = (e.clientY-drag.sy)/drag.r.height;
+      const o = drag.c, MIN = 0.05;
+      let x=o.x, y=o.y, w=o.w, h=o.h;
+      if(drag.h==='move'){
+        x = clamp(o.x+dx, 0, 1-o.w); y = clamp(o.y+dy, 0, 1-o.h);
+      } else {
+        if(drag.h.indexOf('w')>=0){ const nx = clamp(o.x+dx, 0, o.x+o.w-MIN); w = o.x+o.w-nx; x = nx; }
+        if(drag.h.indexOf('e')>=0){ w = clamp(o.w+dx, MIN, 1-o.x); }
+        if(drag.h.indexOf('n')>=0){ const ny = clamp(o.y+dy, 0, o.y+o.h-MIN); h = o.y+o.h-ny; y = ny; }
+        if(drag.h.indexOf('s')>=0){ h = clamp(o.h+dy, MIN, 1-o.y); }
+      }
+      c = {x:x, y:y, w:w, h:h};
+      updateRect();
+    });
+    const endDrag = function(){ drag = null; };
+    rect.addEventListener('pointerup', endDrag);
+    rect.addEventListener('pointercancel', endDrag);
+    ov.querySelector('#cropReset').addEventListener('click', function(){ c = {x:0,y:0,w:1,h:1}; updateRect(); });
+    ov.querySelector('#cropCancel').addEventListener('click', function(){ ov.remove(); });
+    ov.querySelector('#cropOk').addEventListener('click', function(){
+      const full = c.x<=0.001 && c.y<=0.001 && c.w>=0.999 && c.h>=0.999;
+      clip.crop = full ? null : {x:c.x, y:c.y, w:c.w, h:c.h};
+      clip.thumbUrl = makeImageThumb(clip);
+      ov.remove();
+      afterCropChange();
+    });
+  }
+
+  function deleteTelop(id){
+    state.telops = state.telops.filter(t=>t.id!==id);
+    if(state.selectedTelopId===id) state.selectedTelopId = null;
+    computeTimelineDuration(); renderTimeline(); renderPropsPanel(); renderTelopOverlay();
+  }
+
+  els.addTelopBtn.addEventListener('click', ()=>{
+    const tp = { id: genId('tp'), text: 'テロップ', start: state.currentGlobalTime, duration: 2.5, x:0.5, y:0.85, sizePx: 0, track: state.activeTelopTrack, font: 'gothic' };
+    const base = getBaseSize();
+    tp.sizePx = Math.round(base.h * 0.09);
+    state.telops.push(tp);
+    selectEntity('telop', tp.id);
+    computeTimelineDuration(); renderTimeline();
+    renderFrameAtGlobalTime(state.currentGlobalTime);
+  });
+  els.addTelopTrackBtn.addEventListener('click', ()=>{
+    state.telopTrackCount++;
+    state.activeTelopTrack = state.telopTrackCount-1;
+    renderTimeline();
+  });
+
+  function touchDist(t){ const dx=t[0].clientX-t[1].clientX, dy=t[0].clientY-t[1].clientY; return Math.sqrt(dx*dx+dy*dy); }
+
+  // ---- telop on-preview overlay (drag / resize) ----
+  // The canvas is the ONLY thing that renders the visible text while the telop is active.
+  // The overlay handle only draws the dashed box (text is transparent), so the text can never appear twice.
+  let telopDrag = null;
+  function clearTelopOverlay(){ state.editingTelopId = null; if(els.telopOverlay.firstChild) els.telopOverlay.innerHTML = ''; }
+  function styleTelopHandle(handle, tp){
+    const f = fontOf(tp);
+    const canvasRect = els.canvas.getBoundingClientRect();
+    const scale = canvasRect.width / (els.canvas.width || canvasRect.width || 1);
+    handle.style.fontFamily = f.family;
+    handle.style.fontWeight = f.weight;
+    handle.style.left = (tp.x*100)+'%';
+    handle.style.top = (tp.y*100)+'%';
+    handle.style.fontSize = Math.max(8, tp.sizePx*scale) + 'px';
+    const activeNow = state.currentGlobalTime >= tp.start && state.currentGlobalTime < tp.start + tp.duration;
+    if(activeNow){ handle.classList.add('ghost-hidden'); handle.classList.remove('ghost-shown'); }
+    else { handle.classList.add('ghost-shown'); handle.classList.remove('ghost-hidden'); }
+  }
+  function renderTelopOverlay(){
+    clearTelopOverlay();
+    if(state.isPlaying || state.exporting) return;
+    const tp = state.telops.find(t=>t.id===state.selectedTelopId);
+    if(!tp || !state.clips.length || els.canvas.classList.contains('hidden')) return;
+    const canvasRect = els.canvas.getBoundingClientRect();
+    const wrapRect = els.canvas.parentElement.getBoundingClientRect();
+    if(canvasRect.width===0) return;
+    els.telopOverlay.style.left = (canvasRect.left-wrapRect.left)+'px';
+    els.telopOverlay.style.top = (canvasRect.top-wrapRect.top)+'px';
+    els.telopOverlay.style.width = canvasRect.width+'px';
+    els.telopOverlay.style.height = canvasRect.height+'px';
+
+    const handle = document.createElement('div');
+    handle.className = 'telop-handle';
+    handle.textContent = tp.text || 'テロップ';
+    styleTelopHandle(handle, tp);
+    els.telopOverlay.appendChild(handle);
+
+    const hint = document.createElement('div');
+    hint.className = 'telop-hint';
+    hint.textContent = 'ドラッグで移動 / ホイール・ピンチで拡大縮小';
+    els.telopOverlay.appendChild(hint);
+
+    handle.addEventListener('dblclick', function(e){ e.preventDefault(); e.stopPropagation(); startTelopEdit(tp.id); });
+    handle.addEventListener('pointerdown', function(e){
+      if(handle.isContentEditable) return;
+      if(e.button!==0 && e.button!==undefined) return;
+      e.preventDefault();
+      const r = els.canvas.getBoundingClientRect();
+      // keep the grab point: the text follows the cursor without jumping
+      telopDrag = {
+        tp: tp, handle: handle,
+        offX: tp.x - (e.clientX - r.left)/r.width,
+        offY: tp.y - (e.clientY - r.top)/r.height,
+      };
+      handle.classList.add('grabbing');
+      try{ handle.setPointerCapture(e.pointerId); }catch(err){}
+    });
+
+    handle.addEventListener('wheel', function(e){
+      e.preventDefault();
+      tp.sizePx = Math.min(220, Math.max(10, tp.sizePx - Math.sign(e.deltaY)*3));
+      styleTelopHandle(handle, tp);
+      redrawCanvasOnly(state.currentGlobalTime);
+    }, {passive:false});
+
+    let pinchStartDist=null, pinchStartSize=null;
+    handle.addEventListener('touchstart', function(e){ if(e.touches.length===2){ pinchStartDist=touchDist(e.touches); pinchStartSize=tp.sizePx; telopDrag=null; } }, {passive:true});
+    handle.addEventListener('touchmove', function(e){
+      if(e.touches.length===2 && pinchStartDist){
+        e.preventDefault();
+        const ratio = touchDist(e.touches)/pinchStartDist;
+        tp.sizePx = Math.min(220, Math.max(10, Math.round(pinchStartSize*ratio)));
+        styleTelopHandle(handle, tp);
+        redrawCanvasOnly(state.currentGlobalTime);
+      }
+    }, {passive:false});
+    handle.addEventListener('touchend', function(){ pinchStartDist=null; });
+  }
+  // single global listeners (registered once) so they never pile up
+  window.addEventListener('pointermove', function(e){
+    if(!telopDrag) return;
+    const r = els.canvas.getBoundingClientRect();
+    if(r.width===0) return;
+    let nx = (e.clientX - r.left)/r.width + telopDrag.offX;
+    let ny = (e.clientY - r.top)/r.height + telopDrag.offY;
+    nx = Math.min(1,Math.max(0,nx)); ny = Math.min(1,Math.max(0,ny));
+    telopDrag.tp.x = nx; telopDrag.tp.y = ny;
+    telopDrag.handle.style.left = (nx*100)+'%';
+    telopDrag.handle.style.top = (ny*100)+'%';
+    redrawCanvasOnly(state.currentGlobalTime);   // canvas moves together with the box, same frame
+  });
+  function endTelopDrag(){
+    if(telopDrag){ telopDrag.handle.classList.remove('grabbing'); telopDrag = null; }
+  }
+  window.addEventListener('pointerup', endTelopDrag);
+  window.addEventListener('pointercancel', endTelopDrag);
+
+  // ---- double-click to edit telop text right on the preview ----
+  function startTelopEdit(id){
+    if(state.isPlaying || state.exporting) return;
+    const tp = state.telops.find(function(t){ return t.id===id; });
+    if(!tp || state.editingTelopId===id) return;
+    if(state.selectedTelopId!==id) selectEntity('telop', id);
+    else if(!els.telopOverlay.querySelector('.telop-handle')) renderTelopOverlay();
+    const handle = els.telopOverlay.querySelector('.telop-handle');
+    if(!handle) return;
+    state.editingTelopId = id;
+    handle.textContent = tp.text;
+    try{ handle.contentEditable = 'plaintext-only'; }catch(e){}
+    if(handle.contentEditable !== 'plaintext-only') handle.contentEditable = 'true';
+    handle.classList.add('editing');
+    redrawCanvasOnly(state.currentGlobalTime);   // canvas stops drawing this telop while editing
+    handle.focus();
+    const sel = window.getSelection(), range = document.createRange();
+    range.selectNodeContents(handle); sel.removeAllRanges(); sel.addRange(range);
+
+    function onInput(){
+      tp.text = handle.textContent.replace(/[\r\n]+/g,'');
+      refreshBarLabel(tp.id, tp.text || 'テロップ');
+      const inp = document.getElementById('tpText');
+      if(inp && inp!==document.activeElement) inp.value = tp.text;
+    }
+    function onKey(e){
+      e.stopPropagation();
+      if(e.isComposing || e.keyCode===229) return;   // IME変換の確定Enterでは閉じない
+      if(e.key==='Enter' || e.key==='Escape'){ e.preventDefault(); handle.blur(); }
+    }
+    function finish(){
+      handle.removeEventListener('input', onInput);
+      handle.removeEventListener('keydown', onKey);
+      handle.removeEventListener('blur', finish);
+      handle.contentEditable = 'false';
+      handle.classList.remove('editing');
+      const txt = handle.textContent.replace(/[\r\n]+/g,'').trim();
+      tp.text = txt || 'テロップ';
+      state.editingTelopId = null;
+      refreshBarLabel(tp.id, tp.text);
+      const inp = document.getElementById('tpText');
+      if(inp) inp.value = tp.text;
+      redrawCanvasOnly(state.currentGlobalTime);
+      renderTelopOverlay();
+    }
+    handle.addEventListener('input', onInput);
+    handle.addEventListener('keydown', onKey);
+    handle.addEventListener('blur', finish);
+  }
+  // double-click on the telop text drawn on the canvas (even when it is not selected yet)
+  els.previewWrap.addEventListener('dblclick', function(e){
+    if(state.isPlaying || state.exporting || els.canvas.classList.contains('hidden')) return;
+    if(e.target.closest && e.target.closest('.telop-handle')) return;
+    const r = els.canvas.getBoundingClientRect();
+    if(!r.width || !r.height) return;
+    const cx = (e.clientX-r.left)/r.width*els.canvas.width;
+    const cy = (e.clientY-r.top)/r.height*els.canvas.height;
+    const ctx = els.canvas.getContext('2d');
+    const t = state.currentGlobalTime;
+    let hit = null;
+    state.telops.forEach(function(tp){
+      if(!(t>=tp.start && t<tp.start+tp.duration)) return;
+      const f = fontOf(tp), px = tp.sizePx || Math.round(els.canvas.height*0.09);
+      ctx.font = f.weight + ' ' + px + 'px ' + f.family;
+      const hw = ctx.measureText(tp.text||'').width/2 + px*0.3, hh = px*0.65;
+      if(Math.abs(cx - els.canvas.width*(tp.x==null?0.5:tp.x)) <= hw && Math.abs(cy - els.canvas.height*(tp.y==null?0.85:tp.y)) <= hh) hit = tp;
+    });
+    if(hit) startTelopEdit(hit.id);
+  });
+
+  function drawTelops(ctx, t, w, h){
+    const active = state.telops.filter(function(tp){ return t >= tp.start && t < tp.start + tp.duration && !(tp.id===state.editingTelopId && !state.exporting); });
+    active.forEach(function(tp){
+      const f = fontOf(tp);
+      const fontPx = tp.sizePx || Math.round(h*0.09);
+      ctx.font = f.weight + ' ' + fontPx + 'px ' + f.family;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      const x = w*(tp.x==null?0.5:tp.x), y = h*(tp.y==null?0.85:tp.y);
+      ctx.lineWidth = Math.max(2, fontPx*DEFAULT_TELOP_STYLE.strokeW);
+      ctx.strokeStyle = DEFAULT_TELOP_STYLE.stroke;
+      ctx.lineJoin='round';
+      ctx.strokeText(tp.text, x, y);
+      ctx.fillStyle = DEFAULT_TELOP_STYLE.color;
+      ctx.fillText(tp.text, x, y);
+    });
+  }
+
+  function drawAudioPlaceholder(ctx, w, h, name){
+    const grad = ctx.createLinearGradient(0,0,0,h);
+    grad.addColorStop(0,'#1B1F23'); grad.addColorStop(1,'#0D0F11');
+    ctx.fillStyle = grad; ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle = '#7FA0C8'; ctx.lineWidth = Math.max(2,w*0.004); ctx.lineCap='round';
+    const barCount=12, barW=w*0.03, gap=w*0.02;
+    const totalW = barCount*barW + (barCount-1)*gap;
+    let startX = w/2 - totalW/2;
+    ctx.beginPath();
+    for(let i=0;i<barCount;i++){
+      const hh = h*0.08 + Math.abs(Math.sin(i*1.7 + performance.now()/400))*h*0.16;
+      const x = startX + i*(barW+gap);
+      ctx.moveTo(x, h/2-hh/2); ctx.lineTo(x, h/2+hh/2);
+    }
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.font = Math.max(12,w*0.022) + 'px sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    ctx.fillText(name, w/2, h/2 + h*0.14);
+  }
+
+  function drawCover(ctx, media, mw, mh, cw, ch, ox, oy){
+    ox = ox||0; oy = oy||0;
+    if(!mw || !mh){ return; }
+    const mediaRatio = mw/mh, canvasRatio = cw/ch;
+    let sx=0, sy=0, sw=mw, sh=mh;
+    if(mediaRatio > canvasRatio){ sw = mh*canvasRatio; sx = (mw-sw)/2; }
+    else { sh = mw/canvasRatio; sy = (mh-sh)/2; }
+    ctx.drawImage(media, ox+sx, oy+sy, sw, sh, 0, 0, cw, ch);
+  }
+
+  function laneOf(c){ if(c.type==='image') return 'img'; if(c.type==='audio') return 'a'; return c.lane==='v2' ? 'v2' : 'v1'; }
+  function cropOf(c){ return c.crop || {x:0,y:0,w:1,h:1}; }
+  function makeImageThumb(clip){
+    const c = document.createElement('canvas'); c.width=160; c.height=90;
+    const cx = c.getContext('2d');
+    const cr = cropOf(clip), nw = clip.naturalWidth, nh = clip.naturalHeight;
+    drawCover(cx, clip.video, nw*cr.w, nh*cr.h, 160, 90, nw*cr.x, nh*cr.y);
+    return c.toDataURL('image/jpeg',0.7);
+  }
+  // images on the image track are shown whole (aspect kept) over the video, after cropping
+  function drawImageClip(ctx, clip, cw, ch){
+    const cr = cropOf(clip), nw = clip.naturalWidth, nh = clip.naturalHeight;
+    const sx = nw*cr.x, sy = nh*cr.y, sw = nw*cr.w, sh = nh*cr.h;
+    if(!sw || !sh) return;
+    const s = Math.min(cw/sw, ch/sh), dw = sw*s, dh = sh*s;
+    ctx.drawImage(clip.video, sx, sy, sw, sh, (cw-dw)/2, (ch-dh)/2, dw, dh);
+  }
+
+  function getRenderSize(baseW, baseH){
+    if(state.exporting){
+      return {w:baseW, h:baseH};
+    }
+    const maxDim = 480;
+    const scale = Math.min(1, maxDim/Math.max(baseW,baseH));
+    return {w:Math.max(2,Math.round(baseW*scale)), h:Math.max(2,Math.round(baseH*scale))};
+  }
+  function applyCanvasSize(){
+    const base = getBaseSize();
+    const size = getRenderSize(base.w, base.h);
+    els.canvas.width = size.w; els.canvas.height = size.h;
+  }
+
+  function updateTimeUI(){ els.curTime.textContent = fmtTime(state.currentGlobalTime); }
+
+  function drawCurrentFrame(t){
+    redrawCanvasOnly(t);
+    if(state.isPlaying || state.exporting) clearTelopOverlay(); else renderTelopOverlay();
+  }
+  // draws the frame + telops only (never touches overlay DOM, safe to call every pointermove)
+  function activeInLane(t, laneId){
+    let best = null;
+    state.clips.forEach(function(c){
+      if(c.type==='audio' || laneOf(c)!==laneId) return;
+      const d = clipDuration(c);
+      if(t>=c.trackStart && t<c.trackStart+d){
+        if(!best || c.trackStart>=best.trackStart) best = c;
+      }
+    });
+    return best;
+  }
+  function redrawCanvasOnly(t){
+    const ctx = els.canvas.getContext('2d');
+    const W = els.canvas.width, H = els.canvas.height;
+    ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H);
+    let drewVisual = false;
+    // bottom -> top: video 1, video 2, image
+    ['v1','v2','img'].forEach(function(id){
+      const c = activeInLane(t, id);
+      if(!c) return;
+      drewVisual = true;
+      if(c.type==='image'){ drawImageClip(ctx, c, W, H); }
+      else if(c.reverse && c.reversedData){
+        const frames = c.reversedData.frames, fps = c.reversedData.fps;
+        const idx = Math.min(frames.length-1, Math.max(0, Math.floor((t-c.trackStart)*fps)));
+        ctx.drawImage(frames[idx], 0, 0, W, H);
+      } else {
+        drawCover(ctx, c.video, c.video.videoWidth, c.video.videoHeight, W, H);
+      }
+    });
+    if(!drewVisual){
+      const activeAudio = state.clips.find(function(c){ return c.type==='audio' && t>=c.trackStart && t<c.trackStart+clipDuration(c); });
+      if(activeAudio) drawAudioPlaceholder(ctx, W, H, activeAudio.name);
+    }
+    drawTelops(ctx, t, W, H);
+  }
+
+  function syncMediaLive(t){
+    state.clips.forEach(function(c){
+      if(c.type==='image') return;
+      const media = c.video;
+      if(c.reverse){ if(!media.paused){ try{ media.pause(); }catch(e){} } return; }
+      const d = clipDuration(c);
+      const active = t>=c.trackStart && t<c.trackStart+d;
+      if(active){
+        const localT = c.trimStart + (t-c.trackStart)*c.speed;
+        media.playbackRate = c.speed;
+        if(Math.abs(media.currentTime-localT) > 0.15){ try{ media.currentTime = localT; }catch(e){} }
+        if(media.paused && state.isPlaying) media.play().catch(function(){});
+      } else {
+        if(!media.paused){ try{ media.pause(); }catch(e){} }
+      }
+    });
+  }
+
+  async function renderAtTimeStrict(t){
+    const seeks = [];
+    state.clips.forEach(function(c){
+      if(c.type==='image') return;
+      const media = c.video;
+      if(c.reverse){ try{ media.pause(); }catch(e){} return; }
+      const d = clipDuration(c);
+      const active = t>=c.trackStart && t<c.trackStart+d;
+      if(active){
+        const localT = Math.min(Math.max(c.trimStart + (t-c.trackStart)*c.speed, c.trimStart), Math.max(c.trimStart, c.trimEnd-0.02));
+        seeks.push(seekTo(media, localT));
+      } else {
+        try{ media.pause(); }catch(e){}
+      }
+    });
+    await Promise.all(seeks);
+    drawCurrentFrame(t);
+  }
+
+  async function renderFrameAtGlobalTime(t){
+    if(!state.clips.length && !state.telops.length) return;
+    stopPreview();
+    t = Math.max(0, Math.min(t, state.timelineDuration));
+    state.currentGlobalTime = t;
+    applyCanvasSize();
+    await renderAtTimeStrict(t);
+    updateTimeUI(); updateTimelinePlayhead();
+  }
+
+  function renderTimelineRuler(){
+    const total = state.timelineDuration || 1;
+    let step = 2;
+    if(total>180) step=30; else if(total>60) step=15; else if(total>20) step=5; else step=2;
+    let html = '';
+    for(let t=0; t<=total; t+=step){
+      const pct = (t/total)*100;
+      html += '<div class="tl-tick" style="left:'+pct+'%"><span>'+fmtTime(t)+'</span></div>';
+    }
+    els.timelineRuler.innerHTML = html;
+  }
+
+  function layoutBar(barEl, entity, kind){
+    const total = state.timelineDuration || 1;
+    const start = kind==='clip' ? entity.trackStart : entity.start;
+    const dur = kind==='clip' ? clipDuration(entity) : entity.duration;
+    barEl.style.left = (start/total*100)+'%';
+    barEl.style.width = Math.max(0.5,(dur/total*100))+'%';
+  }
+
+  // バーを掴んで滑らかにドラッグ・トリミング移動させる処理
+  function attachBarInteractions(barEl, entity, kind){
+    const body = barEl.querySelector('.tl-bar-body');
+    const hl = barEl.querySelector('.tl-handle-l');
+    const hr = barEl.querySelector('.tl-handle-r');
+    const minDur = 0.2;
+
+    body.addEventListener('pointerdown', function(e){
+      if(e.button!==0 && e.button!==undefined) return;
+      e.stopPropagation();
+      selectEntity(kind, entity.id);
+
+      const trackRect = els.timelineTracksCol.getBoundingClientRect();
+      const pxPerSec = trackRect.width / (state.timelineDuration || 1);
+      const startX = e.clientX;
+      const startVal = kind==='clip' ? entity.trackStart : entity.start;
+
+      barEl.classList.add('dragging');
+
+      function onMove(ev){
+        const dSec = (ev.clientX - startX) / pxPerSec;
+        let nv = Math.max(0, startVal + dSec);
+        if(kind==='clip') entity.trackStart = nv; else entity.start = nv;
+
+        // リアルタイムでDOMのleft（位置）を滑らかに更新
+        layoutBar(barEl, entity, kind);
+      }
+
+      function onUp(){
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+        window.removeEventListener('pointercancel', onUp);
+        barEl.classList.remove('dragging');
+
+        // 動画は上下にドラッグして 動画1 / 動画2 を移れる
+        const upEv = arguments[0];
+        if(kind==='clip' && entity.type==='video' && upEv && upEv.type==='pointerup'){
+          const r1 = els.laneTracks.v1.getBoundingClientRect(), r2 = els.laneTracks.v2.getBoundingClientRect();
+          if(upEv.clientY >= r1.top-24 && upEv.clientY <= r2.bottom+24){
+            entity.lane = upEv.clientY > (r1.bottom + r2.top)/2 ? 'v2' : 'v1';
+          }
+        }
+        // ドラッグ完了後に一度だけタイムライン全体の描画と時間を確定させる
+        computeTimelineDuration();
+        renderTimeline();
+        renderPropsPanel();
+        if(!state.isPlaying) renderFrameAtGlobalTime(state.currentGlobalTime);
+      }
+
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+      window.addEventListener('pointercancel', onUp);
+    });
+
+    if(kind==='telop'){
+      body.addEventListener('contextmenu', function(e){
+        e.preventDefault(); e.stopPropagation();
+        selectEntity('telop', entity.id);
+        showContextMenu(e.clientX, e.clientY, [
+          { label:'テキストを編集', onClick: function(){ selectEntity('telop', entity.id); const inp=document.getElementById('tpText'); if(inp) inp.focus(); } },
+          { label:'削除', danger:true, onClick: function(){ deleteTelop(entity.id); } },
+        ]);
+      });
+    }
+
+    function resizeStart(side){
+      return function(e){
+        if(e.button!==0 && e.button!==undefined) return;
+        e.stopPropagation(); e.preventDefault();
+        selectEntity(kind, entity.id);
+        const startX = e.clientX;
+        const trackRect = els.timelineTracksCol.getBoundingClientRect();
+        const pxPerSec = trackRect.width / (state.timelineDuration || 1);
+        barEl.classList.add('dragging');
+
+        if(kind==='clip'){
+          const startTrimStart=entity.trimStart, startTrimEnd=entity.trimEnd, startTrackStart=entity.trackStart, spd=entity.speed;
+          function onMove(ev){
+            const dSec = (ev.clientX-startX)/pxPerSec;
+            if(side==='l'){
+              let newTrimStart = Math.min(Math.max(0, startTrimStart+dSec), startTrimEnd-minDur);
+              entity.trackStart = startTrackStart + (newTrimStart-startTrimStart)/spd;
+              entity.trimStart = newTrimStart;
+            } else {
+              let newTrimEnd = Math.max(Math.min(entity.duration, startTrimEnd+dSec), startTrimStart+minDur);
+              entity.trimEnd = newTrimEnd;
+            }
+            entity.reversedData = null; entity.reverse = false;
+            layoutBar(barEl, entity, kind);
+          }
+          function onUp(){
+            window.removeEventListener('pointermove', onMove);
+            window.removeEventListener('pointerup', onUp);
+            window.removeEventListener('pointercancel', onUp);
+            barEl.classList.remove('dragging');
+            computeTimelineDuration(); renderTimeline(); renderPropsPanel();
+            if(!state.isPlaying) renderFrameAtGlobalTime(state.currentGlobalTime);
+          }
+          window.addEventListener('pointermove', onMove);
+          window.addEventListener('pointerup', onUp);
+          window.addEventListener('pointercancel', onUp);
+        } else {
+          const startStart=entity.start, startDur=entity.duration;
+          function onMove(ev){
+            const dSec = (ev.clientX-startX)/pxPerSec;
+            if(side==='l'){
+              let ns = Math.min(Math.max(0, startStart+dSec), startStart+startDur-minDur);
+              entity.duration = (startStart+startDur)-ns;
+              entity.start = ns;
+            } else {
+              entity.duration = Math.max(minDur, startDur+dSec);
+            }
+            layoutBar(barEl, entity, kind);
+          }
+          function onUp(){
+            window.removeEventListener('pointermove', onMove);
+            window.removeEventListener('pointerup', onUp);
+            window.removeEventListener('pointercancel', onUp);
+            barEl.classList.remove('dragging');
+            computeTimelineDuration(); renderTimeline(); renderPropsPanel();
+            if(!state.isPlaying) renderFrameAtGlobalTime(state.currentGlobalTime);
+          }
+          window.addEventListener('pointermove', onMove);
+          window.addEventListener('pointerup', onUp);
+          window.addEventListener('pointercancel', onUp);
+        }
+      };
+    }
+    hl.addEventListener('pointerdown', resizeStart('l'));
+    hr.addEventListener('pointerdown', resizeStart('r'));
+  }
+
+  function buildBar(entity, kind){
+    const bar = document.createElement('div');
+    let cls = 'tl-bar ' + (kind==='telop' ? 'telop' : entity.type);
+    if((kind==='clip' && entity.id===state.selectedClipId) || (kind==='telop' && entity.id===state.selectedTelopId)) cls += ' selected';
+    bar.className = cls;
+    bar.dataset.id = entity.id;
+    bar.innerHTML = '<div class="tl-handle tl-handle-l"></div><div class="tl-bar-body"></div><div class="tl-handle tl-handle-r"></div>';
+    bar.querySelector('.tl-bar-body').textContent = kind==='clip' ? entity.name : (entity.text || 'テロップ');
+    layoutBar(bar, entity, kind);
+    attachBarInteractions(bar, entity, kind);
+    return bar;
+  }
+
+  function renderTimeline(){
+    renderTimelineRuler();
+    Object.keys(els.laneTracks).forEach(function(id){
+      const tr = els.laneTracks[id], hint = els.laneHints[id];
+      tr.innerHTML = '';
+      const list = state.clips.filter(function(c){ return laneOf(c)===id; });
+      if(!list.length){ hint.style.display = 'flex'; tr.appendChild(hint); }
+      else { hint.style.display = 'none'; list.forEach(function(c){ tr.appendChild(buildBar(c,'clip')); }); }
+    });
+
+    document.querySelectorAll('.tl-telop-label-dyn').forEach(function(el){ el.remove(); });
+    document.querySelectorAll('.tl-telop-track-dyn').forEach(function(el){ el.remove(); });
+    for(let i=0;i<state.telopTrackCount;i++){
+      (function(idx){
+        const label = document.createElement('div');
+        label.className = 'tl-row-label tl-telop-label-dyn' + (idx===state.activeTelopTrack?' active-track':'');
+        label.textContent = 'テロップ' + (idx+1);
+        label.addEventListener('click', function(){ state.activeTelopTrack = idx; renderTimeline(); });
+        els.tlLabels.appendChild(label);
+
+        const track = document.createElement('div');
+        track.className = 'tl-track tl-track-telop tl-telop-track-dyn' + (idx===state.activeTelopTrack?' active-track':'');
+        track.addEventListener('click', function(e){
+          if(e.target.closest('.tl-bar')) return;
+          state.activeTelopTrack = idx;
+          if(!state.clips.length && !state.telops.length){ renderTimeline(); return; }
+          const rect = els.timelineTracksCol.getBoundingClientRect();
+          const frac = Math.min(1, Math.max(0,(e.clientX-rect.left)/rect.width));
+          renderFrameAtGlobalTime(frac*state.timelineDuration);
+          renderTimeline();
+        });
+        state.telops.filter(function(tp){ return (tp.track||0)===idx; }).forEach(function(tp){ track.appendChild(buildBar(tp,'telop')); });
+        els.timelineTracksCol.insertBefore(track, els.timelinePlayhead);
+      })(i);
+    }
+    updateTimelinePlayhead();
+  }
+  function updateTimelinePlayhead(){
+    const total = state.timelineDuration || 1;
+    const pct = Math.min(100, Math.max(0, (state.currentGlobalTime/total)*100));
+    els.timelinePlayhead.style.left = pct+'%';
+  }
+  els.timelineTracksCol.addEventListener('click', function(e){
+    if(e.target.closest('.tl-bar')) return;
+    if(e.target.closest('.tl-track-telop')) return;
+    if(!state.clips.length && !state.telops.length) return;
+    const rect = els.timelineTracksCol.getBoundingClientRect();
+    const frac = Math.min(1, Math.max(0, (e.clientX-rect.left)/rect.width));
+    renderFrameAtGlobalTime(frac*state.timelineDuration);
+  });
+
+  const FORMAT_NOTE_DEFAULT = 'MP4はブラウザによって非対応の場合、自動でWebMに切り替わります。';
+  const FORMAT_NOTE_MP3 = 'MP3は音声のみを書き出します（映像・テロップは含まれません）。逆再生にしたクリップの音声は無音になります。';
+  function renderFormatChips(){
+    els.formatChips.querySelectorAll('[data-format]').forEach(function(b){ b.classList.toggle('active', state.exportFormat===b.dataset.format); });
+    els.formatNote.textContent = state.exportFormat==='mp3' ? FORMAT_NOTE_MP3 : FORMAT_NOTE_DEFAULT;
+  }
+  els.formatChips.querySelectorAll('[data-format]').forEach(function(b){ b.addEventListener('click', function(){ state.exportFormat=b.dataset.format; renderFormatChips(); }); });
+
+  let playStartPerf = null, playStartGlobal = 0;
+  function stopPreview(){
+    state.isPlaying = false;
+    state.clips.forEach(function(c){ try{ c.video.pause(); }catch(e){} });
+    setPlayIcon(false);
+  }
+  function setPlayIcon(playing){
+    els.playIcon.innerHTML = playing
+      ? '<rect x="5" y="4" width="4.5" height="16" rx="1"></rect><rect x="14.5" y="4" width="4.5" height="16" rx="1"></rect>'
+      : '<path d="M6 4l14 8-14 8V4z"></path>';
+  }
+  function startPlayback(){
+    if(!state.clips.length && !state.telops.length) return;
+    ensureAudioCtx();
+    applyCanvasSize();
+    state.isPlaying = true; setPlayIcon(true);
+    playStartPerf = performance.now();
+    playStartGlobal = state.currentGlobalTime >= state.timelineDuration ? 0 : state.currentGlobalTime;
+    requestAnimationFrame(loop);
+  }
+  function loop(now){
+    if(!state.isPlaying) return;
+    let t = playStartGlobal + (now-playStartPerf)/1000;
+    if(t >= state.timelineDuration){
+      t = state.timelineDuration;
+      syncMediaLive(t); drawCurrentFrame(t);
+      state.currentGlobalTime = t; updateTimeUI(); updateTimelinePlayhead();
+      stopPreview();
+      return;
+    }
+    state.currentGlobalTime = t;
+    syncMediaLive(t);
+    drawCurrentFrame(t);
+    updateTimeUI(); updateTimelinePlayhead();
+    requestAnimationFrame(loop);
+  }
+  els.playBtn.addEventListener('click', function(){
+    if(!state.clips.length && !state.telops.length) return;
+    if(state.isPlaying) stopPreview(); else startPlayback();
+  });
+
+  function pickMime(){
+    const webmOpts = ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
+    const mp4Opts = ['video/mp4;codecs=avc1,mp4a.40.2','video/mp4'];
+    const opts = state.exportFormat==='mp4' ? mp4Opts.concat(webmOpts) : webmOpts;
+    for(let i=0;i<opts.length;i++){ if(window.MediaRecorder && MediaRecorder.isTypeSupported(opts[i])) return opts[i]; }
+    return '';
+  }
+  function deriveFilename(ext){
+    const source = state.clips.find(function(c){ return c.type==='video'; }) || state.clips[0];
+    let base = 'zanulis';
+    if(source && source.name){ base = source.name.replace(/\.[^.]+$/, '') || base; }
+    return base + '_edited.' + ext;
+  }
+  function downloadBlob(blob, filename){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+  }
+
+  // ---------- MP3 export (audio only) ----------
+  // Mixes every audio-bearing clip offline (faster than real time), then encodes with lamejs.
+  let lameLoading = null;
+  function loadLame(){
+    if(window.lamejs) return Promise.resolve();
+    if(lameLoading) return lameLoading;
+    lameLoading = new Promise(function(resolve, reject){
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js';
+      s.onload = function(){ resolve(); };
+      s.onerror = function(){ lameLoading = null; reject(new Error('MP3エンコーダーの読み込みに失敗しました。ネットワーク接続を確認してください。')); };
+      document.head.appendChild(s);
+    });
+    return lameLoading;
+  }
+  function floatToInt16(f){
+    const o = new Int16Array(f.length);
+    for(let i=0;i<f.length;i++){
+      const s = Math.max(-1, Math.min(1, f[i]));
+      o[i] = s<0 ? s*0x8000 : s*0x7FFF;
+    }
+    return o;
+  }
+  async function runExportMp3(){
+    const audible = state.clips.filter(function(c){ return c.type!=='image' && !c.reverse; });
+    if(!audible.length){ alert('音声を含むクリップがありません。動画または音声ファイルを追加してください。'); return; }
+    stopPreview(); ensureAudioCtx();
+    state.exporting = true;
+    showLoading('MP3を準備中...');
+    try{
+      await loadLame();
+      const SR = 44100;
+      const cache = new Map();
+      const items = [];
+      let n = 0;
+      for(const c of audible){
+        n++;
+        updateLoading('音声を解析中... ' + n + '/' + audible.length);
+        let buf = cache.get(c.url);
+        if(buf === undefined){
+          try{
+            const ab = await (await fetch(c.url)).arrayBuffer();
+            buf = await audioCtx.decodeAudioData(ab);
+          }catch(e){ buf = null; }   // e.g. a video without an audio track
+          cache.set(c.url, buf);
+        }
+        if(buf) items.push({c:c, buf:buf});
+      }
+      if(!items.length){ hideLoading(); alert('書き出せる音声が見つかりませんでした。'); return; }
+
+      let total = 0;
+      items.forEach(function(it){ total = Math.max(total, it.c.trackStart + clipDuration(it.c)); });
+      const off = new OfflineAudioContext(2, Math.max(1, Math.ceil(total*SR)), SR);
+      items.forEach(function(it){
+        const c = it.c;
+        const src = off.createBufferSource();
+        src.buffer = it.buf;
+        src.playbackRate.value = c.speed;
+        const g = off.createGain();
+        g.gain.value = c.volume;
+        src.connect(g); g.connect(off.destination);
+        src.start(c.trackStart, c.trimStart, Math.max(0.01, c.trimEnd - c.trimStart));
+      });
+      updateLoading('ミックス中...');
+      const rendered = await off.startRendering();
+
+      const L = rendered.getChannelData(0);
+      const R = rendered.numberOfChannels>1 ? rendered.getChannelData(1) : L;
+      const enc = new lamejs.Mp3Encoder(2, SR, 128);
+      const out = [];
+      const BS = 1152;
+      for(let i=0, k=0; i<L.length; i+=BS, k++){
+        const d = enc.encodeBuffer(floatToInt16(L.subarray(i,i+BS)), floatToInt16(R.subarray(i,i+BS)));
+        if(d.length) out.push(d);
+        if(k % 200 === 0){
+          updateLoading('MP3に変換中... ' + Math.round(i/L.length*100) + '%');
+          await new Promise(function(r){ setTimeout(r, 0); });
+        }
+      }
+      const tail = enc.flush();
+      if(tail.length) out.push(tail);
+
+      downloadBlob(new Blob(out, {type:'audio/mpeg'}), deriveFilename('mp3'));
+      hideLoading();
+    }catch(err){
+      hideLoading();
+      alert('MP3の書き出しに失敗しました：' + (err && err.message ? err.message : err));
+    }finally{
+      state.exporting = false;
+    }
+  }
+
+  async function runExport(){
+    if(!state.clips.length && !state.telops.length){ alert('先に動画・音声を追加してください'); return; }
+    if(state.exportFormat==='mp3'){ return runExportMp3(); }
+    const hasVideo = state.clips.some(function(c){ return c.type==='video' || c.type==='image'; });
+    if(!hasVideo){
+      const ok = confirm('動画・画像クリップがありません。黒い背景の動画として書き出します。よろしいですか？');
+      if(!ok) return;
+    }
+    if(!window.MediaRecorder){ alert('お使いのブラウザは書き出しに対応していません。'); return; }
+    if(state.exportFormat==='mp4'){
+      const mp4ok = MediaRecorder.isTypeSupported('video/mp4') || MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2');
+      if(!mp4ok) alert('お使いのブラウザはMP4書き出しに対応していないため、WebM形式で書き出します。');
+    }
+    stopPreview(); ensureAudioCtx();
+    applyCanvasSize();
+    state.exporting = true;
+    const exportStartWall = performance.now();
+    showLoading('書き出し中... 0%');
+
+    const dest = audioCtx.createMediaStreamDestination();
+    const connected = new Set();
+    state.clips.forEach(function(c){ if(c.audioGain && !connected.has(c.audioGain)){ try{ c.audioGain.connect(dest); connected.add(c.audioGain); }catch(e){} } });
+
+    const canvasStream = els.canvas.captureStream(30);
+    const combined = new MediaStream([].concat(canvasStream.getVideoTracks(), dest.stream.getAudioTracks()));
+    const mime = pickMime();
+    const recorder = mime ? new MediaRecorder(combined, {mimeType: mime}) : new MediaRecorder(combined);
+    const chunks = [];
+    recorder.ondataavailable = function(e){ if(e.data && e.data.size) chunks.push(e.data); };
+
+    const progressTimer = setInterval(function(){
+      const frac = state.timelineDuration>0 ? Math.min(0.995, state.currentGlobalTime/state.timelineDuration) : 0;
+      const elapsed = (performance.now()-exportStartWall)/1000;
+      let etaText = '';
+      if(frac>0.03){
+        const estTotal = elapsed/frac;
+        const remain = Math.max(0, estTotal-elapsed);
+        etaText = ' ／ 残り約' + fmtTime(remain);
+      }
+      updateLoading('書き出し中... ' + Math.round(frac*100) + '%' + etaText);
+    }, 300);
+
+    recorder.start();
+    await new Promise(function(resolve){
+      state.isPlaying = true; setPlayIcon(true);
+      const startPerf = performance.now();
+      function exportLoop(now){
+        if(!state.isPlaying){ resolve(); return; }
+        let t = (now-startPerf)/1000;
+        if(t >= state.timelineDuration){
+          t = state.timelineDuration;
+          syncMediaLive(t); drawCurrentFrame(t);
+          state.isPlaying = false; setPlayIcon(false);
+          resolve(); return;
+        }
+        state.currentGlobalTime = t;
+        syncMediaLive(t); drawCurrentFrame(t);
+        updateTimeUI(); updateTimelinePlayhead();
+        requestAnimationFrame(exportLoop);
+      }
+      requestAnimationFrame(exportLoop);
+    });
+
+    recorder.stop();
+    await new Promise(function(res){ recorder.onstop = res; });
+    clearInterval(progressTimer);
+    state.exporting = false;
+
+    connected.forEach(function(g){ try{ g.disconnect(dest); }catch(e){} });
+
+    const actualExt = mime.indexOf('mp4')>=0 ? 'mp4' : 'webm';
+    const blob = new Blob(chunks, {type: actualExt==='mp4' ? 'video/mp4' : 'video/webm'});
+    downloadBlob(blob, deriveFilename(actualExt));
+
+    hideLoading();
+  }
+  els.exportBtn.addEventListener('click', runExport);
+  els.exportBtnSide.addEventListener('click', runExport);
+
+  async function init(){
+    computeTimelineDuration(); renderClipList(); renderTimeline(); renderPropsPanel();
+    renderFormatChips();
+    setupReveal();
+    await checkSavedProject();
+    if(localStorage.getItem('zanulis_visited')) showEditorView();
+    else startFloat();
+  }
+  init();
+
+})();
+</script>
+</body>
+</html>
