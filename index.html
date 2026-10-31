@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>Zanulis ― ごく最小限の動画編集を、とても簡単に</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&family=Shippori+Mincho:wght@700&family=M+PLUS+Rounded+1c:wght@800&family=Dela+Gothic+One&family=M+PLUS+1+Code:wght@700&family=Yomogi&family=Bebas+Neue&family=Anton&family=Playfair+Display:wght@800&family=Pacifico&family=Permanent+Marker&family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#F1F3F6;
@@ -168,7 +171,8 @@
 
   .ctx-menu{ position:fixed; background:var(--bg-alt); border:1px solid var(--line); border-radius:6px; box-shadow:0 10px 26px rgba(20,24,30,0.22); z-index:300; padding:4px; min-width:150px; }
   .ctx-item{ display:block; width:100%; text-align:left; padding:9px 11px; font-size:12.5px; background:transparent; border:none; border-radius:4px; color:var(--text); }
-  .ctx-item:hover{background:var(--bg-soft);}
+  .ctx-item:hover:not(:disabled){background:var(--bg-soft);}
+  .ctx-item:disabled{opacity:0.4; cursor:not-allowed;}
   .ctx-item.danger{color:var(--danger);}
 
   #editor-layout{ display:grid; grid-template-columns:1fr 360px; gap:0; min-height:calc(100vh - var(--header-h) - 1px); }
@@ -183,7 +187,7 @@
     display:flex; align-items:center; justify-content:center; position:relative; min-height:240px;
   }
   .preview-wrap.drag{ outline:2px dashed var(--accent); outline-offset:-2px; }
-  #previewCanvas{ display:block; max-width:100%; max-height:52vh; width:auto; height:auto; margin:0 auto; image-rendering:optimizeSpeed; }
+  #previewCanvas{ display:block; max-width:100%; max-height:52vh; width:auto; height:auto; margin:0 auto; }
   .preview-empty{ color:var(--text-faint); text-align:center; padding:54px 20px; }
   .preview-empty .pe-icon{ font-size:32px; margin-bottom:12px; color:#5A6472; }
   .preview-empty .pe-title{ font-size:20px; font-weight:700; color:#D7DEE6; margin-bottom:8px; }
@@ -322,6 +326,18 @@
   .faq-a{ padding:0 4px 14px; font-size:13px; color:var(--text-dim); line-height:1.9; }
   .faq-a b{ color:var(--text); }
 
+  .topbar-center{ flex:1; display:flex; justify-content:center; min-width:0; padding:0 12px; }
+  .header-perks, .hero-perks-mobile{ display:flex; align-items:center; gap:6px 18px; font-size:12.5px; font-weight:700; color:var(--text-dim); white-space:nowrap; }
+  .perk{ display:inline-flex; align-items:center; gap:5px; }
+  .perk svg{ flex-shrink:0; }
+  .hero-perks-mobile{ display:none; flex-wrap:wrap; margin-bottom:16px; }
+  @media (max-width:960px){
+    .topbar-center{ display:none; }
+    .hero-perks-mobile{ display:flex; }
+  }
+  .news-box{ border:1px solid var(--line); background:var(--bg-alt); border-radius:8px; padding:22px 20px; color:var(--text-dim); font-size:14px; line-height:1.8; }
+  .tl-bar{ -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
+
   @media (max-width:880px){
     #editor-layout{grid-template-columns:1fr;}
     .editor-side{position:static; max-height:none; border-top:1px solid var(--line);}
@@ -342,6 +358,7 @@
   <div class="brand" id="brandHome">
     <img src="3157.png" alt="Zanulis" class="logo-img">
   </div>
+  <div class="topbar-center"><div class="header-perks" id="headerPerks"></div></div>
   <div class="topbar-actions">
     <span id="editorOnlyActions" style="display:none; gap:8px;">
       <button class="btn btn-ghost" id="saveBtn">保存</button>
@@ -354,6 +371,7 @@
 <div id="landing">
   <div class="hero">
     <div class="hero-text reveal">
+      <div class="hero-perks-mobile" id="heroPerks"></div>
       <div class="eyebrow-lg">ログイン不要・アカウント登録なしで、ブラウザだけで完結</div>
       <h1>ごく最小限の<br>動画編集を、<br><span class="accentline">とても簡単に。</span></h1>
       <p class="tagline">カット・字幕・速度・音量・逆再生まで、ログインなしで制作できる。アカウント登録不要。</p>
@@ -389,7 +407,7 @@
       </div>
       <div class="feature-row reveal">
         <div class="icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 12a8 8 0 1 1-2.34-5.66" stroke-linecap="round"/><path d="M20 4v5h-5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        <div><h3>逆再生</h3><p>選択したクリップをワンタップで逆再生に変換できます（音声はミュートされます）。</p></div>
+        <div><h3>逆再生</h3><p>選択したクリップをワンタップで逆再生に変換できます（音声も一緒に逆再生されます）。</p></div>
       </div>
       <div class="feature-row reveal">
         <div class="icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16M4 12h10M4 18h13" stroke-linecap="round"/></svg></div>
@@ -400,37 +418,15 @@
         <div><h3>高画質で書き出し</h3><p>編集中のプレビューは軽さ優先で表示し、書き出し時には元の画質のまま指定した形式で仕上げられます。WebM・MP4に加えて、音声だけのMP3としても書き出せます。</p></div>
       </div>
     </div>
-    <p class="closing-line reveal"><b>本格的な組み立てを、ブラウザだけで。</b>細かい調整はしっかりできるようにしつつ、余計な設定画面は増やしていません。詳しい内容はページ下部の「サービス概要」からご覧いただけます。</p>
   </section>
 
-  <div class="cta-bottom" id="creditsSection">
+  <div class="cta-bottom" id="newsSection">
     <div class="section-head reveal">
-      <div class="eyebrow">クレジット</div>
-      <h2>Zanulisに協力してくれた方々</h2>
-      <p>開発に協力してくれた方、開発のフィードバックを送ってくれた方</p>
+      <div class="eyebrow">お知らせ</div>
+      <h2>お知らせ</h2>
+      <p>最新のニュースや更新内容をお知らせします。</p>
     </div>
-    <div class="credits-list">
-      <a class="credit-item reveal" href="https://x.com/yy_dev1633" target="_blank" rel="noopener noreferrer">
-        <img class="credit-avatar" src="unnamed.jpg" alt="y.y">
-        <div class="credit-info">
-          <span class="credit-role">開発者</span>
-          <span class="credit-name">y.y</span>
-        </div>
-      </a>
-      <a class="credit-item reveal" href="https://x.com/gkuikni" target="_blank" rel="noopener noreferrer">
-        <img class="credit-avatar" src="SDmQ4pRm_400x400.jpg" alt="めっちゃ初心者">
-        <div class="credit-info">
-          <span class="credit-role">ロゴ製作者</span>
-          <span class="credit-name">めっちゃ初心者</span>
-        </div>
-      </a>
-      <a class="credit-item reveal" href="https://x.com/ActiveTK5929" target="_blank" rel="noopener noreferrer">
-        <img class="credit-avatar" src="avatar.png" alt="ActiveTK.">
-        <div class="credit-info">
-          <span class="credit-name">ActiveTK.</span>
-        </div>
-      </a>
-    </div>
+    <div class="news-box reveal">現在はまだお知らせはありません。</div>
   </div>
 </div>
 
@@ -530,6 +526,7 @@
     <button class="footer-link" data-menu="terms">利用規約</button>
     <button class="footer-link" data-menu="disclaimer">免責事項</button>
     <button class="footer-link" data-menu="privacy">プライバシーポリシー</button>
+    <button class="footer-link" data-menu="credits">クレジット</button>
   </div>
   <div class="footer-copy">ZANULIS — MINIMAL VIDEO EDITOR, IN YOUR BROWSER</div>
 </footer>
@@ -565,14 +562,44 @@
   "use strict";
 
   const DEFAULT_TELOP_STYLE = { color:'#FFFFFF', stroke:'#000000', strokeW:0.10 };
+  // 日本語フォント6種 + 英語専用フォント6種（Google Fontsから読み込み。未取得時は端末の標準フォントで代替）
   const FONT_OPTIONS = {
-    gothic: { label:'ゴシック',   family:'"Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif', weight:800 },
-    mincho: { label:'明朝',       family:'"Hiragino Mincho ProN", "Yu Mincho", "MS PMincho", serif', weight:700 },
-    round:  { label:'丸ゴシック', family:'"Hiragino Maru Gothic ProN", "Arial Rounded MT Bold", "Yu Gothic", sans-serif', weight:800 },
-    pop:    { label:'極太',       family:'"Hiragino Sans", "Yu Gothic", "Arial Black", sans-serif', weight:900 },
-    mono:   { label:'等幅',       family:'ui-monospace, "SF Mono", Consolas, "MS Gothic", monospace', weight:700 },
-    hand:   { label:'手書き風',   family:'"Segoe Print", "Bradley Hand", "Hannotate SC", "Yu Kyokasho", cursive', weight:700 },
+    gothic:   { group:'ja', label:'ゴシック',   family:'"Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif', weight:700 },
+    mincho:   { group:'ja', label:'明朝',       family:'"Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "MS PMincho", serif', weight:700 },
+    round:    { group:'ja', label:'丸ゴシック', family:'"M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Arial Rounded MT Bold", sans-serif', weight:800 },
+    pop:      { group:'ja', label:'極太',       family:'"Dela Gothic One", "Arial Black", "Yu Gothic", sans-serif', weight:400 },
+    mono:     { group:'ja', label:'等幅',       family:'"M PLUS 1 Code", ui-monospace, "SF Mono", Consolas, "MS Gothic", monospace', weight:700 },
+    hand:     { group:'ja', label:'手書き風',   family:'"Yomogi", "Segoe Print", "Bradley Hand", "Yu Kyokasho", cursive', weight:400 },
+    bebas:    { group:'en', label:'Bebas Neue', family:'"Bebas Neue", "Noto Sans JP", sans-serif', weight:400 },
+    anton:    { group:'en', label:'Anton',      family:'"Anton", "Noto Sans JP", sans-serif', weight:400 },
+    playfair: { group:'en', label:'Playfair',   family:'"Playfair Display", "Shippori Mincho", serif', weight:800 },
+    pacifico: { group:'en', label:'Pacifico',   family:'"Pacifico", "Yomogi", cursive', weight:400 },
+    marker:   { group:'en', label:'Marker',     family:'"Permanent Marker", "Yomogi", cursive', weight:400 },
+    pixel:    { group:'en', label:'Pixel',      family:'"Press Start 2P", "M PLUS 1 Code", monospace', weight:400 },
   };
+  // キャンバス描画前にフォントを読み込む（読み込み完了後に再描画）
+  const fontPending = new Set();
+  function requestFont(f, px, text){
+    if(!document.fonts) return;
+    const spec = f.weight + ' ' + px + 'px ' + f.family;
+    let ok = true;
+    try{ ok = document.fonts.check(spec, text || ''); }catch(e){}
+    if(ok) return;
+    const key = spec + '|' + text;
+    if(fontPending.has(key)) return;
+    fontPending.add(key);
+    document.fonts.load(spec, text || '').then(function(){
+      fontPending.delete(key);
+      if(!state.isPlaying) redrawCanvasOnly(state.currentGlobalTime);
+    }).catch(function(){ fontPending.delete(key); });
+  }
+  async function preloadTelopFonts(){
+    if(!document.fonts) return;
+    await Promise.all(state.telops.map(function(tp){
+      const f = fontOf(tp);
+      return document.fonts.load(f.weight + ' 40px ' + f.family, tp.text || 'テロップ').catch(function(){});
+    }));
+  }
   function fontOf(tp){ return FONT_OPTIONS[tp && tp.font] || FONT_OPTIONS.gothic; }
   const IMAGE_DEFAULT_DURATION = 4;
   const IMAGE_MAX_DURATION = 300;
@@ -622,6 +649,12 @@
   };
   els.laneTracks = { v1:$('trackV1'), v2:$('trackV2'), img:$('trackImg'), a:$('trackAudio') };
   els.laneHints = { v1:$('hintV1'), v2:$('hintV2'), img:$('hintImg'), a:$('hintAudio') };
+  (function(){
+    const check = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1FA84F" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5L19.5 7"/></svg>';
+    const html = ['iOS/androidにも対応','すべて無料','ログイン不要'].map(function(t){ return '<span class="perk">'+check+t+'</span>'; }).join('');
+    $('headerPerks').innerHTML = html;
+    $('heroPerks').innerHTML = html;
+  })();
 
   function ensureAudioCtx(){
     if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -638,22 +671,31 @@
   }
   function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 
-  function removeContextMenu(){ const m=document.getElementById('ctxMenu'); if(m) m.remove(); }
+  let ctxAway = null;
+  function removeContextMenu(){
+    const m = document.getElementById('ctxMenu'); if(m) m.remove();
+    if(ctxAway){ window.removeEventListener('pointerdown', ctxAway, true); ctxAway = null; }
+  }
   function showContextMenu(x,y, items){
     removeContextMenu();
     const menu = document.createElement('div');
     menu.className='ctx-menu'; menu.id='ctxMenu';
-    const vw = window.innerWidth, vh = window.innerHeight;
-    menu.style.left = Math.min(x, vw-170)+'px';
-    menu.style.top = Math.min(y, vh-120)+'px';
     items.forEach(it=>{
       const b=document.createElement('button');
       b.textContent=it.label; b.className='ctx-item'+(it.danger?' danger':'');
-      b.addEventListener('click', (e)=>{ e.stopPropagation(); it.onClick(); removeContextMenu(); });
+      b.disabled = !!it.disabled;
+      b.addEventListener('click', (e)=>{ e.stopPropagation(); removeContextMenu(); it.onClick(); });
       menu.appendChild(b);
     });
+    menu.style.visibility = 'hidden';
     document.body.appendChild(menu);
-    setTimeout(()=>{ window.addEventListener('click', removeContextMenu, {once:true}); },0);
+    const mw = menu.offsetWidth, mh = menu.offsetHeight;
+    menu.style.left = Math.max(4, Math.min(x, window.innerWidth - mw - 6)) + 'px';
+    menu.style.top  = Math.max(4, Math.min(y, window.innerHeight - mh - 6)) + 'px';
+    menu.style.visibility = 'visible';
+    // タッチの長押し後の指離しで閉じないよう、外側タップ(pointerdown)で閉じる
+    ctxAway = function(ev){ if(menu.contains(ev.target)) return; removeContextMenu(); };
+    setTimeout(function(){ if(document.getElementById('ctxMenu')===menu) window.addEventListener('pointerdown', ctxAway, true); }, 0);
   }
 
   // ---------- landing: gentle scroll reveal ----------
@@ -706,6 +748,7 @@
     els.editor.classList.remove('hidden');
     els.editorOnlyActions.style.display = 'flex';
     els.headerStartBtn.classList.add('hidden');
+    $('headerPerks').classList.add('hidden');
     stopFloat();
     ensureAudioCtx();
     window.scrollTo(0,0);
@@ -722,6 +765,7 @@
     els.landing.classList.remove('hidden');
     els.editorOnlyActions.style.display = 'none';
     els.headerStartBtn.classList.remove('hidden');
+    $('headerPerks').classList.remove('hidden');
     window.scrollTo(0,0);
     startFloat();
   }
@@ -773,12 +817,26 @@
       + '続きを編集したいときは「保存」、完成品が欲しいときは「書き出し」です。迷ったら両方行うのがおすすめです。')
     + qa('書き出せる形式は何ですか？', 'WebM、MP4、MP3の3種類です。MP4はブラウザによって非対応の場合があり、その場合は自動でWebMになります。MP3は映像を含まない、音声だけのファイルです。')
     + qa('書き出しに時間がかかります。', '動画（WebM／MP4）は、編集内容を実際の再生と同じ速さで記録するため、動画の長さとほぼ同じ時間がかかります。書き出し中は別のタブに切り替えたり、画面を閉じたりしないでください。MP3は再生を待たずに変換するので、より短い時間で終わります。')
-    + qa('トラックはどう使い分けますか？', 'タイムラインには「動画1」「動画2」「画像」「音声」のトラックがあります。映像は、動画1、動画2、画像の順に手前へ重なって表示されます。動画のバーを上下にドラッグするか、動画を選択して「トラック」を切り替えると、動画1と動画2を行き来できます。画像トラックの画像は、動画の上に縦横比を保ったまま重ねて表示されます。')
-    + qa('画像をトリミング（切り抜き）するには？', '画像クリップを選択し、右側の「画像をトリミング…」を押します。表示された枠を、ドラッグで移動、四隅や辺をつまんで範囲を調整し、「適用」を押してください。「トリミングを解除」でいつでも元に戻せます。トリミングできるのは画像のみで、表示する長さは、タイムライン上のバーの端をドラッグして調整します。')
+    + qa('トラックはどう使い分けますか？', 'タイムラインには「動画1」「動画2」「画像」「音声」のトラックがあります。映像は、動画1、動画2の順に手前へ重なり、画像は初期設定で最前面に表示されます（重なり順は、画像の設定で「最背面」に変更できます）。動画のバーを上下にドラッグするか、動画を選択して「トラック」を切り替えると、動画1と動画2を行き来できます。画像トラックの画像は、動画の上に縦横比を保ったまま重ねて表示されます。')
+    + qa('画像をトリミング（切り抜き）するには？', '画像を動画の上に重ねた（動画と同じ時間帯に配置した）ときだけ、トリミングと拡大縮小ができます。画像クリップを選択し、右側の「画像をトリミング…」を押します。表示された枠を、ドラッグで移動、四隅や辺をつまんで範囲を調整し、「適用」を押してください。「トリミングを解除」でいつでも元に戻せます。トリミングできるのは画像のみで、表示する長さは、タイムライン上のバーの端をドラッグして調整します。')
+    + qa('バーを右クリック（スマホは長押し）すると何ができますか？', 'タイムライン上のバーを右クリック（スマホ・タブレットでは長押し）すると、メニューが開きます。再生位置（赤い線）での分割、複製、動画1／動画2の移動、逆再生、ミュート、画像の最前面／最背面の切り替え、削除などができます。バーを選択した状態でDeleteキーを押すと、そのバーを削除できます。')
     + qa('テロップの文字はどう編集しますか？', '「＋テロップを追加」で追加したあと、プレビュー上のテロップをダブルクリックすると、その場で文字を入力できます。Enterで確定します。ドラッグで位置を移動、ホイールやピンチで大きさを変更でき、右側のパネルやタイムライン上のバーの右クリックからも編集できます。');
 
+  const CREDIT_LIST = [
+    { role:'開発者',     name:'y.y',            href:'https://x.com/yy_dev1633', img:'unnamed.jpg' },
+    { role:'ロゴ製作者', name:'めっちゃ初心者', href:'https://x.com/gkuikni',    img:'SDmQ4pRm_400x400.jpg' },
+    { role:'',           name:'ActiveTK.',      href:'https://x.com/ActiveTK5929', img:'avatar.png' },
+  ];
+  let CREDITS_HTML = '<h4>Zanulisに協力してくれた方々</h4><p>開発に協力してくれた方、開発のフィードバックを送ってくれた方</p><div class="credits-list">';
+  CREDIT_LIST.forEach(function(c){
+    CREDITS_HTML += '<a class="credit-item" href="'+c.href+'" target="_blank" rel="noopener noreferrer">'
+      + '<img class="credit-avatar" src="'+c.img+'" alt="'+c.name+'">'
+      + '<div class="credit-info">'+(c.role ? '<span class="credit-role">'+c.role+'</span>' : '')+'<span class="credit-name">'+c.name+'</span></div></a>';
+  });
+  CREDITS_HTML += '</div>';
   const MENU_CONTENT = {
     faq: { title: 'よくある質問', html: FAQ_HTML },
+    credits: { title: 'クレジット', html: CREDITS_HTML },
     overview: {
       title: 'サービス概要',
       html: '<h4>Zanulisについて</h4>'
@@ -870,7 +928,7 @@
     showLoading('保存中...');
     try{
       const clipsData = state.clips.map(c=>({
-        name:c.name, type:c.type, blob:c.file, lane:c.lane||null, crop:c.crop||null, trackStart:c.trackStart,
+        name:c.name, type:c.type, blob:c.file, lane:c.lane||null, crop:c.crop||null, layer:c.layer||null, scale:c.scale||null, ox:c.ox||0, oy:c.oy||0, trackStart:c.trackStart,
         trimStart:c.trimStart, trimEnd:c.trimEnd, speed:c.speed, volume:c.volume,
       }));
       const telopsData = state.telops.map(t=>({...t}));
@@ -895,6 +953,7 @@
         clip.trimEnd = Math.min(cd.trimEnd, clip.duration);
         clip.speed = cd.speed || 1;
         clip.volume = cd.volume==null ? 1 : cd.volume;
+        clip.layer = cd.layer || undefined; clip.scale = cd.scale || undefined; clip.ox = cd.ox || 0; clip.oy = cd.oy || 0;
         if(clip.type==='video') clip.lane = (cd.lane==='v2') ? 'v2' : 'v1';
         if(clip.type==='image' && cd.crop){ clip.crop = cd.crop; clip.thumbUrl = makeImageThumb(clip); }
         if(clip.type !== 'image'){
@@ -992,7 +1051,7 @@
 
       const media = document.createElement(isAudio ? 'audio' : 'video');
       media.src = url; media.preload = 'auto';
-      if(!isAudio) media.playsInline = true;
+      if(!isAudio){ media.playsInline = true; media.setAttribute('playsinline',''); media.setAttribute('webkit-playsinline',''); }
       media.muted = false;
       media.addEventListener('loadedmetadata', async ()=>{
         const clip = {
@@ -1097,6 +1156,7 @@
     if(!clip) return;
     stopPreview();
     try{ clip.video.pause(); }catch(e){}
+    stopReverseAudio(clip);
     const stillUsed = state.clips.filter(c=>c.id!==id && c.url===clip.url).length>0;
     if(!stillUsed){ try{ URL.revokeObjectURL(clip.url); }catch(e){} }
     state.clips = state.clips.filter(c=>c.id!==id);
@@ -1145,17 +1205,41 @@
       if(!clip){ els.propsPanel.innerHTML = '<div class="empty-panel">タイムライン上のクリップやテロップをクリックすると、ここで編集できます</div>'; return; }
 
       if(clip.type==='image'){
-        els.propsPanel.innerHTML = '<div style="font-size:13px;font-weight:700;margin-bottom:14px;color:var(--text);">'+escapeHtml(clip.name)+'</div>'
-          + '<div class="panel-title">トリミング（切り抜き）</div>'
-          + '<button class="btn btn-sm btn-block" id="cropBtn">画像をトリミング…</button>'
-          + (clip.crop ? '<button class="btn btn-sm btn-block btn-ghost" id="cropResetBtn" style="margin-top:6px;">トリミングを解除</button>' : '')
-          + '<div class="panel-sub">画像はタイムライン上のバーの端をドラッグすると、表示時間を調整できます。</div>'
+        const ov = imageOverlapsVideo(clip);
+        const resetBtn = clip.crop ? '<button class="btn btn-sm btn-block btn-ghost" id="cropResetBtn" style="margin-top:6px;">トリミングを解除</button>' : '';
+        let ph = '<div style="font-size:13px;font-weight:700;margin-bottom:14px;color:var(--text);">'+escapeHtml(clip.name)+'</div>';
+        if(ov){
+          const sc = clip.scale || 1, ox = clip.ox || 0, oy = clip.oy || 0;
+          ph += '<div class="panel-title">重なり順</div><div class="chip-grid">'
+            + '<button class="chip '+(clip.layer!=='back'?'active':'')+'" data-layer="front">画像を最前面</button>'
+            + '<button class="chip '+(clip.layer==='back'?'active':'')+'" data-layer="back">画像を最背面</button></div>'
+            + '<div class="panel-sub">最背面にすると、画像が動画の後ろに表示されます。動画が画面いっぱいのときは動画に隠れるので、動画の「表示サイズ」を小さくすると見えます。</div>'
+            + '<div class="panel-title">トリミング（切り抜き）</div>'
+            + '<button class="btn btn-sm btn-block" id="cropBtn">画像をトリミング…</button>' + resetBtn
+            + '<div class="panel-title">拡大縮小・位置</div>'
+            + '<div class="field-row"><span class="lbl">サイズ</span><span class="val" id="imgScaleVal">'+Math.round(sc*100)+'%</span></div>'
+            + '<input type="range" id="imgScale" min="0.1" max="2" step="0.05" value="'+sc+'">'
+            + '<div class="field-row"><span class="lbl">横位置</span><span class="val" id="imgOxVal">'+Math.round(ox*100)+'</span></div>'
+            + '<input type="range" id="imgOx" min="-0.5" max="0.5" step="0.01" value="'+ox+'">'
+            + '<div class="field-row"><span class="lbl">縦位置</span><span class="val" id="imgOyVal">'+Math.round(oy*100)+'</span></div>'
+            + '<input type="range" id="imgOy" min="-0.5" max="0.5" step="0.01" value="'+oy+'">';
+        } else {
+          ph += '<div class="panel-sub">トリミング・拡大縮小・重なり順は、画像を動画の上に重ねたとき（動画と同じ時間帯に配置したとき）だけ使えます。</div>' + resetBtn;
+        }
+        ph += '<div class="panel-sub">画像はタイムライン上のバーの端をドラッグすると、表示時間を調整できます。</div>'
           + '<button class="btn btn-sm btn-block" id="deleteClipBtn" style="margin-top:18px;">このクリップを削除</button>';
-        $('cropBtn').addEventListener('click', ()=> openCropEditor(clip));
+        els.propsPanel.innerHTML = ph;
+        const cb = $('cropBtn'); if(cb) cb.addEventListener('click', ()=> openCropEditor(clip));
         const crb = $('cropResetBtn');
-        if(crb) crb.addEventListener('click', ()=>{
-          clip.crop = null; clip.thumbUrl = makeImageThumb(clip);
-          afterCropChange();
+        if(crb) crb.addEventListener('click', ()=>{ clip.crop = null; clip.thumbUrl = makeImageThumb(clip); afterCropChange(); });
+        els.propsPanel.querySelectorAll('[data-layer]').forEach(function(btn){
+          btn.addEventListener('click', function(){ clip.layer = btn.dataset.layer; renderPropsPanel(); redrawCanvasOnly(state.currentGlobalTime); });
+        });
+        [['imgScale','imgScaleVal','scale',function(v){ return Math.round(v*100)+'%'; }],
+         ['imgOx','imgOxVal','ox',function(v){ return String(Math.round(v*100)); }],
+         ['imgOy','imgOyVal','oy',function(v){ return String(Math.round(v*100)); }]].forEach(function(a){
+          const el = $(a[0]); if(!el) return;
+          el.addEventListener('input', function(){ clip[a[2]] = parseFloat(el.value); $(a[1]).textContent = a[3](clip[a[2]]); redrawCanvasOnly(state.currentGlobalTime); });
         });
         $('deleteClipBtn').addEventListener('click', ()=> deleteClip(clip.id));
         return;
@@ -1169,12 +1253,15 @@
         const ln = laneOf(clip);
         laneHtml = '<div class="panel-title">トラック</div><div class="chip-grid" id="laneChips">'
           + '<button class="chip '+(ln==='v1'?'active':'')+'" data-lane="v1">動画1</button>'
-          + '<button class="chip '+(ln==='v2'?'active':'')+'" data-lane="v2">動画2</button></div>';
+          + '<button class="chip '+(ln==='v2'?'active':'')+'" data-lane="v2">動画2</button></div>'
+          + '<div class="panel-title">表示サイズ</div>'
+          + '<div class="field-row"><span class="lbl">Size</span><span class="val" id="vScaleVal">'+Math.round((clip.scale||1)*100)+'%</span></div>'
+          + '<input type="range" id="vScale" min="0.2" max="1" step="0.05" value="'+(clip.scale||1)+'">';
       }
       let reverseHtml = '';
       if(clip.type==='video'){
         reverseHtml = '<div class="panel-title">逆再生</div>'
-          + '<div class="field-row"><span class="lbl">選択範囲を逆再生にする（音声はミュート）</span>'
+          + '<div class="field-row"><span class="lbl">選択範囲を逆再生にする（音声も逆再生）</span>'
           + '<button class="switch '+(clip.reverse?'on':'')+'" id="reverseToggle"></button></div>';
       }
       els.propsPanel.innerHTML = '<div style="font-size:13px;font-weight:700;margin-bottom:14px;color:var(--text);">'+escapeHtml(clip.name)+'</div>'
@@ -1188,7 +1275,7 @@
       els.propsPanel.querySelectorAll('[data-speed]').forEach(btn=>{
         btn.addEventListener('click', ()=>{
           clip.speed = parseFloat(btn.dataset.speed);
-          clip.reversedData = null;
+          clip.reversedData = null; clip.reverseAudio = null; clip.reverse = false; stopReverseAudio(clip);
           computeTimelineDuration(); renderTimeline(); renderPropsPanel();
         });
       });
@@ -1199,37 +1286,33 @@
           renderFrameAtGlobalTime(state.currentGlobalTime);
         });
       });
+      const vs = $('vScale');
+      if(vs) vs.addEventListener('input', ()=>{ clip.scale = parseFloat(vs.value); $('vScaleVal').textContent = Math.round(clip.scale*100)+'%'; redrawCanvasOnly(state.currentGlobalTime); });
       $('volSlider').addEventListener('input', (e)=>{
         clip.volume = parseFloat(e.target.value);
         $('volVal').textContent = Math.round(clip.volume*100)+'%';
+        if(clip.revGain) clip.revGain.gain.value = clip.volume;
         if(clip.audioGain) clip.audioGain.gain.value = clip.volume;
       });
       const rt = $('reverseToggle');
-      if(rt){
-        rt.addEventListener('click', async ()=>{
-          const turningOn = !clip.reverse;
-          if(turningOn && !clip.reversedData){
-            showLoading('逆再生用のフレームを生成中... 0%');
-            await extractReverseFrames(clip, (p)=> updateLoading('逆再生用のフレームを生成中... ' + p + '%'));
-            hideLoading();
-          }
-          clip.reverse = turningOn;
-          computeTimelineDuration(); renderTimeline(); renderPropsPanel();
-        });
-      }
+      if(rt){ rt.addEventListener('click', ()=> toggleReverse(clip, !clip.reverse)); }
       $('deleteClipBtn').addEventListener('click', ()=> deleteClip(clip.id));
     } else if(state.selectedTelopId){
       const tp = state.telops.find(t=>t.id===state.selectedTelopId);
       if(!tp){ els.propsPanel.innerHTML = '<div class="empty-panel">タイムライン上のクリップやテロップをクリックすると、ここで編集できます</div>'; return; }
-      let fontChipsHtml = '';
+      let fontJaHtml = '', fontEnHtml = '';
       Object.keys(FONT_OPTIONS).forEach(function(k){
         const f = FONT_OPTIONS[k];
-        fontChipsHtml += '<button class="chip '+((tp.font||'gothic')===k?'active':'')+'" data-font="'+k+'" style="font-family:'+f.family.replace(/"/g,"'")+'; font-weight:'+f.weight+';">'+f.label+'</button>';
+        const chip = '<button class="chip '+((tp.font||'gothic')===k?'active':'')+'" data-font="'+k+'" style="font-family:'+f.family.replace(/"/g,"'")+'; font-weight:'+f.weight+';">'+f.label+'</button>';
+        if(f.group==='en') fontEnHtml += chip; else fontJaHtml += chip;
       });
       els.propsPanel.innerHTML = '<div class="panel-title">テロップのテキスト</div>'
         + '<input type="text" class="pf-input" id="tpText" maxlength="60" value="'+escapeHtml(tp.text)+'">'
-        + '<div class="panel-title">フォント</div>'
-        + '<div class="chip-grid" id="fontChips">'+fontChipsHtml+'</div>'
+        + '<div class="panel-title">フォント（日本語）</div>'
+        + '<div class="chip-grid" id="fontChips">'+fontJaHtml+'</div>'
+        + '<div class="panel-title">英語専用フォント（英数字のみ）</div>'
+        + '<div class="chip-grid" id="fontChipsEn">'+fontEnHtml+'</div>'
+        + '<div class="panel-sub">英語専用フォントは英数字だけに効きます。日本語の文字は自動で近い書体になります。</div>'
         + '<div class="panel-sub">映像上のテキストをダブルクリックすると文字を直接編集でき、ドラッグすると表示位置（X/Y）を変更できます。ホイールやピンチでサイズも調整できます。タイムライン上のバーは右クリックでも編集・削除できます。</div>'
         + '<button class="btn btn-sm btn-block" id="deleteTelopBtn" style="margin-top:6px;">このテロップを削除</button>';
       $('tpText').addEventListener('input', (e)=>{ tp.text = e.target.value; refreshBarLabel(tp.id, tp.text || 'テロップ'); redrawCanvasOnly(state.currentGlobalTime); renderTelopOverlay(); });
@@ -1246,6 +1329,98 @@
       els.propsPanel.innerHTML = '<div class="empty-panel">タイムライン上のクリップやテロップをクリックすると、ここで編集できます</div>';
     }
   }
+  // ---- right-click / long-press menu for timeline bars ----
+  function setClipVolume(c, v){ c.volume = v; if(c.audioGain) c.audioGain.gain.value = v; if(c.revGain) c.revGain.gain.value = v; }
+  function afterClipsChanged(){
+    computeTimelineDuration(); renderClipList(); renderTimeline(); renderPropsPanel();
+    renderFrameAtGlobalTime(state.currentGlobalTime);
+  }
+  async function cloneClip(c){
+    const n = await createClip(c.file, c.name);
+    n.speed = c.speed; n.volume = c.volume; n.lane = c.lane; n.layer = c.layer; n.scale = c.scale; n.ox = c.ox; n.oy = c.oy;
+    n.crop = c.crop ? Object.assign({}, c.crop) : null;
+    n.trimStart = c.trimStart; n.trimEnd = c.trimEnd; n.trackStart = c.trackStart;
+    if(n.type!=='image'){ setupAudioGraph(n); if(n.audioGain) n.audioGain.gain.value = n.volume; }
+    if(n.type==='image' && n.crop) n.thumbUrl = makeImageThumb(n);
+    if(c.reverse && c.reversedData){ n.reverse = true; n.reversedData = c.reversedData; n.reverseAudio = c.reverseAudio; ensureRevGain(n); }
+    return n;
+  }
+  async function splitClip(id){
+    const c = state.clips.find(function(x){ return x.id===id; });
+    if(!c || c.reverse) return;
+    const t = state.currentGlobalTime, d = clipDuration(c);
+    if(!(t > c.trackStart+0.1 && t < c.trackStart+d-0.1)){ alert('再生位置（赤い線）をバーの内側に合わせてから分割してください。'); return; }
+    stopPreview();
+    showLoading('分割中...');
+    try{
+      const splitSrc = c.trimStart + (t-c.trackStart)*c.speed;
+      const n = await cloneClip(c);
+      n.trimStart = splitSrc; n.trimEnd = c.trimEnd; n.trackStart = t;
+      c.trimEnd = splitSrc;
+      state.clips.splice(state.clips.indexOf(c)+1, 0, n);
+    }catch(e){ alert('分割に失敗しました'); }
+    hideLoading();
+    afterClipsChanged();
+  }
+  async function duplicateClip(id){
+    const c = state.clips.find(function(x){ return x.id===id; });
+    if(!c) return;
+    stopPreview();
+    showLoading('複製中...');
+    try{
+      const n = await cloneClip(c);
+      n.trackStart = c.trackStart + clipDuration(c);
+      state.clips.splice(state.clips.indexOf(c)+1, 0, n);
+      state.selectedClipId = n.id; state.selectedTelopId = null;
+    }catch(e){ alert('複製に失敗しました'); }
+    hideLoading();
+    afterClipsChanged();
+  }
+  function duplicateTelop(id){
+    const tp = state.telops.find(function(x){ return x.id===id; });
+    if(!tp) return;
+    const n = Object.assign({}, tp, { id: genId('tp'), start: tp.start + tp.duration });
+    state.telops.push(n);
+    selectEntity('telop', n.id);
+    computeTimelineDuration(); renderTimeline();
+    renderFrameAtGlobalTime(state.currentGlobalTime);
+  }
+  function barMenuItems(entity, kind){
+    const items = [];
+    if(kind==='telop'){
+      items.push({ label:'テキストを編集', onClick:function(){
+        selectEntity('telop', entity.id);
+        startTelopEdit(entity.id);
+        if(state.editingTelopId!==entity.id){ const inp = document.getElementById('tpText'); if(inp) inp.focus(); }
+      }});
+      items.push({ label:'複製', onClick:function(){ duplicateTelop(entity.id); } });
+      items.push({ label:'削除', danger:true, onClick:function(){ deleteTelop(entity.id); } });
+      return items;
+    }
+    const c = entity;
+    const t = state.currentGlobalTime, d = clipDuration(c);
+    const canSplit = !c.reverse && t > c.trackStart+0.1 && t < c.trackStart+d-0.1;
+    items.push({ label:'再生位置で分割', disabled:!canSplit, onClick:function(){ splitClip(c.id); } });
+    items.push({ label:'複製', onClick:function(){ duplicateClip(c.id); } });
+    if(c.type==='video'){
+      items.push({ label: laneOf(c)==='v1' ? '動画2へ移動' : '動画1へ移動', onClick:function(){ c.lane = laneOf(c)==='v1' ? 'v2' : 'v1'; afterClipsChanged(); } });
+      items.push({ label: c.reverse ? '逆再生を解除' : '逆再生にする', onClick:function(){ toggleReverse(c, !c.reverse); } });
+    }
+    if(c.type==='image' && imageOverlapsVideo(c)){
+      items.push({ label: c.layer==='back' ? '最前面にする' : '最背面にする', onClick:function(){ c.layer = c.layer==='back' ? 'front' : 'back'; afterClipsChanged(); } });
+      items.push({ label:'トリミング…', onClick:function(){ openCropEditor(c); } });
+    }
+    if(c.type!=='image'){
+      const muted = c.volume===0;
+      items.push({ label: muted ? 'ミュートを解除' : 'ミュートする', onClick:function(){
+        if(muted) setClipVolume(c, c.prevVolume || 1); else { c.prevVolume = c.volume; setClipVolume(c, 0); }
+        renderPropsPanel();
+      }});
+    }
+    items.push({ label:'削除', danger:true, onClick:function(){ deleteClip(c.id); } });
+    return items;
+  }
+
   // ---- image crop editor (images only) ----
   function afterCropChange(){
     computeTimelineDuration(); renderClipList(); renderPropsPanel();
@@ -1510,6 +1685,7 @@
     active.forEach(function(tp){
       const f = fontOf(tp);
       const fontPx = tp.sizePx || Math.round(h*0.09);
+      requestFont(f, fontPx, tp.text);
       ctx.font = f.weight + ' ' + fontPx + 'px ' + f.family;
       ctx.textAlign='center'; ctx.textBaseline='middle';
       const x = w*(tp.x==null?0.5:tp.x), y = h*(tp.y==null?0.85:tp.y);
@@ -1567,15 +1743,73 @@
     const cr = cropOf(clip), nw = clip.naturalWidth, nh = clip.naturalHeight;
     const sx = nw*cr.x, sy = nh*cr.y, sw = nw*cr.w, sh = nh*cr.h;
     if(!sw || !sh) return;
-    const s = Math.min(cw/sw, ch/sh), dw = sw*s, dh = sh*s;
-    ctx.drawImage(clip.video, sx, sy, sw, sh, (cw-dw)/2, (ch-dh)/2, dw, dh);
+    const k = clip.scale || 1;
+    const s = Math.min(cw/sw, ch/sh)*k, dw = sw*s, dh = sh*s;
+    const cx0 = cw/2 + (clip.ox||0)*cw, cy0 = ch/2 + (clip.oy||0)*ch;
+    ctx.drawImage(clip.video, sx, sy, sw, sh, cx0-dw/2, cy0-dh/2, dw, dh);
+  }
+
+  // 画像が動画と同じ時間帯に重なっているか（トリミング・拡大縮小・重なり順はこのときだけ）
+  function imageOverlapsVideo(img){
+    const a0 = img.trackStart, a1 = a0 + clipDuration(img);
+    return state.clips.some(function(v){ return v.type==='video' && v.trackStart < a1-0.001 && v.trackStart+clipDuration(v) > a0+0.001; });
+  }
+  // ---- reverse playback audio ----
+  function stopReverseAudio(c){ if(c && c._revSrc){ try{ c._revSrc.stop(); }catch(e){} c._revSrc = null; } }
+  function ensureRevGain(c){
+    if(!c.revGain && audioCtx){ c.revGain = audioCtx.createGain(); c.revGain.gain.value = c.volume; c.revGain.connect(audioCtx.destination); }
+  }
+  async function buildReverseAudio(clip){
+    clip.reverseAudio = null;
+    try{
+      ensureAudioCtx();
+      const ab = await (await fetch(clip.url)).arrayBuffer();
+      const buf = await audioCtx.decodeAudioData(ab);
+      const sr = buf.sampleRate;
+      const s0 = Math.max(0, Math.floor(clip.trimStart*sr)), s1 = Math.min(buf.length, Math.floor(clip.trimEnd*sr));
+      const len = Math.max(1, s1 - s0);
+      const out = audioCtx.createBuffer(buf.numberOfChannels, len, sr);
+      for(let ch=0; ch<buf.numberOfChannels; ch++){
+        const src = buf.getChannelData(ch), dst = out.getChannelData(ch);
+        for(let i=0;i<len;i++) dst[i] = src[s1-1-i] || 0;
+      }
+      clip.reverseAudio = out;
+      ensureRevGain(clip);
+    }catch(e){ clip.reverseAudio = null; }   // 音声トラックのない動画など
+  }
+  async function toggleReverse(clip, turningOn){
+    if(clip.type!=='video') return;
+    if(turningOn){
+      stopPreview();
+      showLoading('逆再生用のフレームを生成中... 0%');
+      try{
+        if(!clip.reversedData) await extractReverseFrames(clip, (p)=> updateLoading('逆再生用のフレームを生成中... ' + p + '%'));
+        if(!clip.reverseAudio){ updateLoading('逆再生用の音声を生成中...'); await buildReverseAudio(clip); }
+      }finally{ hideLoading(); }
+    } else { stopReverseAudio(clip); }
+    clip.reverse = turningOn;
+    computeTimelineDuration(); renderTimeline(); renderPropsPanel();
+    renderFrameAtGlobalTime(state.currentGlobalTime);
+  }
+  // 再生中、実際に動いているメディアの時刻を基準にする（遅い端末でシークを繰り返さないため）
+  function mediaClockT(t){
+    for(const c of state.clips){
+      if(c.type==='image' || c.reverse) continue;
+      const m = c.video;
+      if(m.paused || m.seeking || m.readyState<3) continue;
+      if(!(t>=c.trackStart && t<c.trackStart+clipDuration(c))) continue;
+      const tm = c.trackStart + (m.currentTime - c.trimStart)/c.speed;
+      if(isFinite(tm)) return tm;
+    }
+    return null;
   }
 
   function getRenderSize(baseW, baseH){
     if(state.exporting){
       return {w:baseW, h:baseH};
     }
-    const maxDim = 480;
+    const coarse = !!(window.matchMedia && window.matchMedia('(pointer:coarse)').matches);
+    const maxDim = coarse ? 1024 : 1600;   // 画質重視（タッチ端末は軽さとのバランス）
     const scale = Math.min(1, maxDim/Math.max(baseW,baseH));
     return {w:Math.max(2,Math.round(baseW*scale)), h:Math.max(2,Math.round(baseH*scale))};
   }
@@ -1603,26 +1837,36 @@
     });
     return best;
   }
+  function drawVideoClip(ctx, c, t, W, H){
+    let src, sw, sh;
+    if(c.reverse && c.reversedData){
+      const frames = c.reversedData.frames, fps = c.reversedData.fps;
+      const idx = Math.min(frames.length-1, Math.max(0, Math.floor((t-c.trackStart)*fps)));
+      src = frames[idx]; sw = c.reversedData.w; sh = c.reversedData.h;
+    } else { src = c.video; sw = c.video.videoWidth; sh = c.video.videoHeight; }
+    if(!src || !sw || !sh) return;
+    const k = c.scale && c.scale<1 ? c.scale : 1;
+    if(k<1){
+      const s = Math.min(W/sw, H/sh)*k, dw = sw*s, dh = sh*s;
+      ctx.drawImage(src, (W-dw)/2, (H-dh)/2, dw, dh);
+    } else {
+      drawCover(ctx, src, sw, sh, W, H);
+    }
+  }
   function redrawCanvasOnly(t){
     const ctx = els.canvas.getContext('2d');
     const W = els.canvas.width, H = els.canvas.height;
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
     ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H);
-    let drewVisual = false;
-    // bottom -> top: video 1, video 2, image
-    ['v1','v2','img'].forEach(function(id){
-      const c = activeInLane(t, id);
-      if(!c) return;
-      drewVisual = true;
-      if(c.type==='image'){ drawImageClip(ctx, c, W, H); }
-      else if(c.reverse && c.reversedData){
-        const frames = c.reversedData.frames, fps = c.reversedData.fps;
-        const idx = Math.min(frames.length-1, Math.max(0, Math.floor((t-c.trackStart)*fps)));
-        ctx.drawImage(frames[idx], 0, 0, W, H);
-      } else {
-        drawCover(ctx, c.video, c.video.videoWidth, c.video.videoHeight, W, H);
-      }
+    const imgC = activeInLane(t, 'img');
+    const seq = [];
+    if(imgC && imgC.layer==='back') seq.push(imgC);
+    ['v1','v2'].forEach(function(id){ const c = activeInLane(t, id); if(c) seq.push(c); });
+    if(imgC && imgC.layer!=='back') seq.push(imgC);
+    seq.forEach(function(c){
+      if(c.type==='image') drawImageClip(ctx, c, W, H); else drawVideoClip(ctx, c, t, W, H);
     });
-    if(!drewVisual){
+    if(!seq.length){
       const activeAudio = state.clips.find(function(c){ return c.type==='audio' && t>=c.trackStart && t<c.trackStart+clipDuration(c); });
       if(activeAudio) drawAudioPlaceholder(ctx, W, H, activeAudio.name);
     }
@@ -1633,17 +1877,37 @@
     state.clips.forEach(function(c){
       if(c.type==='image') return;
       const media = c.video;
-      if(c.reverse){ if(!media.paused){ try{ media.pause(); }catch(e){} } return; }
       const d = clipDuration(c);
       const active = t>=c.trackStart && t<c.trackStart+d;
+      if(c.reverse){
+        if(!media.paused){ try{ media.pause(); }catch(e){} }
+        if(active && state.isPlaying){
+          if(!c._revSrc && c.reverseAudio && audioCtx){
+            ensureRevGain(c);
+            const src = audioCtx.createBufferSource();
+            src.buffer = c.reverseAudio; src.connect(c.revGain);
+            const off = Math.min(Math.max(0, t-c.trackStart), Math.max(0, c.reverseAudio.duration-0.02));
+            try{ src.start(0, off); }catch(e){}
+            src.onended = function(){ if(c._revSrc===src) c._revSrc = null; };
+            c._revSrc = src;
+          }
+        } else { stopReverseAudio(c); }
+        return;
+      }
       if(active){
         const localT = c.trimStart + (t-c.trackStart)*c.speed;
-        media.playbackRate = c.speed;
-        if(Math.abs(media.currentTime-localT) > 0.15){ try{ media.currentTime = localT; }catch(e){} }
-        if(media.paused && state.isPlaying) media.play().catch(function(){});
-      } else {
-        if(!media.paused){ try{ media.pause(); }catch(e){} }
-      }
+        if(media.playbackRate !== c.speed) media.playbackRate = c.speed;
+        if(media.paused){
+          if(state.isPlaying){
+            try{ media.currentTime = localT; }catch(e){}   // 再生開始時だけ位置合わせ
+            const p = media.play(); if(p && p.catch) p.catch(function(){});
+          }
+        } else if(!media.seeking && media.readyState>=2){
+          const drift = Math.abs(media.currentTime - localT);
+          const now = performance.now();
+          if(drift > 0.5 && (!c._lastFix || now - c._lastFix > 900)){ c._lastFix = now; try{ media.currentTime = localT; }catch(e){} }
+        }
+      } else if(!media.paused){ try{ media.pause(); }catch(e){} }
     });
   }
 
@@ -1710,17 +1974,29 @@
 
       const trackRect = els.timelineTracksCol.getBoundingClientRect();
       const pxPerSec = trackRect.width / (state.timelineDuration || 1);
-      const startX = e.clientX;
+      const startX = e.clientX, startY = e.clientY;
       const startVal = kind==='clip' ? entity.trackStart : entity.start;
+      let lpTimer = null, lpFired = false;
 
       barEl.classList.add('dragging');
 
+      // スマホ・タブレット: 長押しで右クリック相当のメニュー
+      if(e.pointerType==='touch'){
+        lpTimer = setTimeout(function(){
+          lpFired = true; lpTimer = null;
+          if(kind==='clip') entity.trackStart = startVal; else entity.start = startVal;
+          layoutBar(barEl, entity, kind);
+          barEl.classList.remove('dragging');
+          showContextMenu(startX, startY, barMenuItems(entity, kind));
+        }, 550);
+      }
+
       function onMove(ev){
+        if(lpFired) return;
+        if(lpTimer && (Math.abs(ev.clientX-startX)>8 || Math.abs(ev.clientY-startY)>8)){ clearTimeout(lpTimer); lpTimer = null; }
         const dSec = (ev.clientX - startX) / pxPerSec;
         let nv = Math.max(0, startVal + dSec);
         if(kind==='clip') entity.trackStart = nv; else entity.start = nv;
-
-        // リアルタイムでDOMのleft（位置）を滑らかに更新
         layoutBar(barEl, entity, kind);
       }
 
@@ -1728,7 +2004,9 @@
         window.removeEventListener('pointermove', onMove);
         window.removeEventListener('pointerup', onUp);
         window.removeEventListener('pointercancel', onUp);
+        if(lpTimer){ clearTimeout(lpTimer); lpTimer = null; }
         barEl.classList.remove('dragging');
+        if(lpFired) return;
 
         // 動画は上下にドラッグして 動画1 / 動画2 を移れる
         const upEv = arguments[0];
@@ -1750,16 +2028,11 @@
       window.addEventListener('pointercancel', onUp);
     });
 
-    if(kind==='telop'){
-      body.addEventListener('contextmenu', function(e){
-        e.preventDefault(); e.stopPropagation();
-        selectEntity('telop', entity.id);
-        showContextMenu(e.clientX, e.clientY, [
-          { label:'テキストを編集', onClick: function(){ selectEntity('telop', entity.id); const inp=document.getElementById('tpText'); if(inp) inp.focus(); } },
-          { label:'削除', danger:true, onClick: function(){ deleteTelop(entity.id); } },
-        ]);
-      });
-    }
+    barEl.addEventListener('contextmenu', function(e){
+      e.preventDefault(); e.stopPropagation();
+      selectEntity(kind, entity.id);
+      showContextMenu(e.clientX, e.clientY, barMenuItems(entity, kind));
+    });
 
     function resizeStart(side){
       return function(e){
@@ -1783,7 +2056,7 @@
               let newTrimEnd = Math.max(Math.min(entity.duration, startTrimEnd+dSec), startTrimStart+minDur);
               entity.trimEnd = newTrimEnd;
             }
-            entity.reversedData = null; entity.reverse = false;
+            entity.reversedData = null; entity.reverseAudio = null; entity.reverse = false; stopReverseAudio(entity);
             layoutBar(barEl, entity, kind);
           }
           function onUp(){
@@ -1893,7 +2166,7 @@
   });
 
   const FORMAT_NOTE_DEFAULT = 'MP4はブラウザによって非対応の場合、自動でWebMに切り替わります。';
-  const FORMAT_NOTE_MP3 = 'MP3は音声のみを書き出します（映像・テロップは含まれません）。逆再生にしたクリップの音声は無音になります。';
+  const FORMAT_NOTE_MP3 = 'MP3は音声のみを書き出します（映像・テロップは含まれません）。';
   function renderFormatChips(){
     els.formatChips.querySelectorAll('[data-format]').forEach(function(b){ b.classList.toggle('active', state.exportFormat===b.dataset.format); });
     els.formatNote.textContent = state.exportFormat==='mp3' ? FORMAT_NOTE_MP3 : FORMAT_NOTE_DEFAULT;
@@ -1903,7 +2176,7 @@
   let playStartPerf = null, playStartGlobal = 0;
   function stopPreview(){
     state.isPlaying = false;
-    state.clips.forEach(function(c){ try{ c.video.pause(); }catch(e){} });
+    state.clips.forEach(function(c){ try{ c.video.pause(); }catch(e){} stopReverseAudio(c); });
     setPlayIcon(false);
   }
   function setPlayIcon(playing){
@@ -1916,6 +2189,21 @@
     ensureAudioCtx();
     applyCanvasSize();
     state.isPlaying = true; setPlayIcon(true);
+    // iPad/iPhone: 再生ボタンのタップ中に一度だけ各動画を再生して「再生許可」を取る（音が出ない・止まる対策）
+    state.clips.forEach(function(c){
+      if(c.type==='image' || c._unlocked) return;
+      c._unlocked = true;
+      try{
+        const pr = c.video.play();
+        if(pr && pr.then){
+          pr.then(function(){
+            const tt = state.currentGlobalTime;
+            const act = state.isPlaying && !c.reverse && tt>=c.trackStart && tt<c.trackStart+clipDuration(c);
+            if(!act){ try{ c.video.pause(); }catch(e){} }
+          }).catch(function(){ c._unlocked = false; });
+        }
+      }catch(e){}
+    });
     playStartPerf = performance.now();
     playStartGlobal = state.currentGlobalTime >= state.timelineDuration ? 0 : state.currentGlobalTime;
     requestAnimationFrame(loop);
@@ -1923,6 +2211,8 @@
   function loop(now){
     if(!state.isPlaying) return;
     let t = playStartGlobal + (now-playStartPerf)/1000;
+    const tmc = mediaClockT(t);
+    if(tmc!==null && Math.abs(tmc-t)>0.06 && Math.abs(tmc-t)<1.5){ playStartPerf = now - (tmc - playStartGlobal)*1000; t = tmc; }
     if(t >= state.timelineDuration){
       t = state.timelineDuration;
       syncMediaLive(t); drawCurrentFrame(t);
@@ -1986,7 +2276,7 @@
     return o;
   }
   async function runExportMp3(){
-    const audible = state.clips.filter(function(c){ return c.type!=='image' && !c.reverse; });
+    const audible = state.clips.filter(function(c){ return c.type!=='image'; });
     if(!audible.length){ alert('音声を含むクリップがありません。動画または音声ファイルを追加してください。'); return; }
     stopPreview(); ensureAudioCtx();
     state.exporting = true;
@@ -2000,6 +2290,7 @@
       for(const c of audible){
         n++;
         updateLoading('音声を解析中... ' + n + '/' + audible.length);
+        if(c.reverse){ if(c.reverseAudio) items.push({c:c, buf:c.reverseAudio, rev:true}); continue; }
         let buf = cache.get(c.url);
         if(buf === undefined){
           try{
@@ -2019,11 +2310,11 @@
         const c = it.c;
         const src = off.createBufferSource();
         src.buffer = it.buf;
-        src.playbackRate.value = c.speed;
+        src.playbackRate.value = it.rev ? 1 : c.speed;
         const g = off.createGain();
         g.gain.value = c.volume;
         src.connect(g); g.connect(off.destination);
-        src.start(c.trackStart, c.trimStart, Math.max(0.01, c.trimEnd - c.trimStart));
+        if(it.rev) src.start(c.trackStart); else src.start(c.trackStart, c.trimStart, Math.max(0.01, c.trimEnd - c.trimStart));
       });
       updateLoading('ミックス中...');
       const rendered = await off.startRendering();
@@ -2068,6 +2359,7 @@
       if(!mp4ok) alert('お使いのブラウザはMP4書き出しに対応していないため、WebM形式で書き出します。');
     }
     stopPreview(); ensureAudioCtx();
+    await preloadTelopFonts();
     applyCanvasSize();
     state.exporting = true;
     const exportStartWall = performance.now();
@@ -2075,12 +2367,19 @@
 
     const dest = audioCtx.createMediaStreamDestination();
     const connected = new Set();
-    state.clips.forEach(function(c){ if(c.audioGain && !connected.has(c.audioGain)){ try{ c.audioGain.connect(dest); connected.add(c.audioGain); }catch(e){} } });
+    state.clips.forEach(function(c){
+      [c.audioGain, c.revGain].forEach(function(g){ if(g && !connected.has(g)){ try{ g.connect(dest); connected.add(g); }catch(e){} } });
+    });
 
     const canvasStream = els.canvas.captureStream(30);
     const combined = new MediaStream([].concat(canvasStream.getVideoTracks(), dest.stream.getAudioTracks()));
     const mime = pickMime();
-    const recorder = mime ? new MediaRecorder(combined, {mimeType: mime}) : new MediaRecorder(combined);
+    const vbps = Math.round(Math.min(20e6, Math.max(6e6, els.canvas.width*els.canvas.height*30*0.14)));
+    const recOpts = { videoBitsPerSecond: vbps, audioBitsPerSecond: 192000 };
+    if(mime) recOpts.mimeType = mime;
+    let recorder;
+    try{ recorder = new MediaRecorder(combined, recOpts); }
+    catch(e){ recorder = mime ? new MediaRecorder(combined, {mimeType: mime}) : new MediaRecorder(combined); }
     const chunks = [];
     recorder.ondataavailable = function(e){ if(e.data && e.data.size) chunks.push(e.data); };
 
@@ -2099,10 +2398,12 @@
     recorder.start();
     await new Promise(function(resolve){
       state.isPlaying = true; setPlayIcon(true);
-      const startPerf = performance.now();
+      let startPerf = performance.now();
       function exportLoop(now){
         if(!state.isPlaying){ resolve(); return; }
         let t = (now-startPerf)/1000;
+        const tmc = mediaClockT(t);
+        if(tmc!==null && Math.abs(tmc-t)>0.06 && Math.abs(tmc-t)<1.5){ startPerf = now - tmc*1000; t = tmc; }
         if(t >= state.timelineDuration){
           t = state.timelineDuration;
           syncMediaLive(t); drawCurrentFrame(t);
@@ -2117,6 +2418,7 @@
       requestAnimationFrame(exportLoop);
     });
 
+    state.clips.forEach(stopReverseAudio);
     recorder.stop();
     await new Promise(function(res){ recorder.onstop = res; });
     clearInterval(progressTimer);
@@ -2132,6 +2434,19 @@
   }
   els.exportBtn.addEventListener('click', runExport);
   els.exportBtnSide.addEventListener('click', runExport);
+
+  document.addEventListener('keydown', function(e){
+    if(e.key!=='Delete' && e.key!=='Backspace') return;
+    if(els.editor.classList.contains('hidden')) return;
+    const ae = document.activeElement;
+    if(ae){
+      if(ae.isContentEditable || ae.tagName==='TEXTAREA') return;
+      if(ae.tagName==='INPUT' && ae.type!=='range') return;
+    }
+    if(document.querySelector('.modal-overlay:not(.hidden)')) return;   // ウィンドウ表示中は無効
+    if(state.selectedClipId){ e.preventDefault(); deleteClip(state.selectedClipId); }
+    else if(state.selectedTelopId){ e.preventDefault(); deleteTelop(state.selectedTelopId); }
+  });
 
   async function init(){
     computeTimelineDuration(); renderClipList(); renderTimeline(); renderPropsPanel();
