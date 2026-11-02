@@ -202,17 +202,6 @@
   .telop-handle:active{cursor:grabbing;}
   .telop-handle.ghost-hidden:not(.editing){color:transparent; text-shadow:none;}
 
-  /* ---------- image gizmo (preview上で拡大縮小・トリミング) ---------- */
-  #imageOverlay{position:absolute; pointer-events:none;}
-  .img-ghost-clip{position:absolute; inset:0; overflow:hidden; pointer-events:none;}
-  .img-ghost{position:absolute; max-width:none; opacity:.4; outline:1px dashed rgba(255,255,255,0.8); user-select:none; -webkit-user-drag:none; pointer-events:none;}
-  .img-box{position:absolute; pointer-events:auto; border:2px solid #fff; outline:1px solid var(--accent); cursor:move; touch-action:none; box-sizing:border-box;}
-  .img-h{position:absolute; width:16px; height:16px; background:#fff; border:2px solid var(--accent); border-radius:3px; margin:-8px 0 0 -8px; touch-action:none;}
-  .img-box.scale .img-h{border-radius:50%;}
-  .img-toolbar{position:absolute; top:6px; left:50%; transform:translateX(-50%); display:flex; gap:4px; pointer-events:auto; background:rgba(15,20,28,0.82); padding:4px; border-radius:6px; z-index:5;}
-  .img-toolbar button{border:none; background:transparent; color:#D7DEE6; font-size:12px; font-weight:700; padding:6px 10px; border-radius:4px; white-space:nowrap;}
-  .img-toolbar button.active{background:var(--accent); color:#fff;}
-  .img-hint{position:absolute; bottom:6px; left:50%; transform:translateX(-50%); font-family:var(--mono); font-size:10px; color:rgba(255,255,255,0.75); pointer-events:none; white-space:nowrap; text-shadow:0 0 4px #000;}
   .telop-hint{position:absolute; bottom:6px; left:50%; transform:translateX(-50%); font-family:var(--mono); font-size:10px; color:rgba(255,255,255,0.6); pointer-events:none; white-space:nowrap;}
 
   .transport{display:flex; align-items:center; gap:12px; margin-top:14px;}
@@ -327,12 +316,6 @@
 
   .telop-handle.editing{ cursor:text; user-select:text; -webkit-user-select:text; outline:2px solid var(--accent); background:rgba(0,0,0,0.35); }
 
-  .crop-box{ width:100%; max-width:720px; }
-  .crop-stage{ position:relative; display:block; text-align:center; padding:10px; overflow:hidden; line-height:0; background:var(--bg-soft); border-radius:6px; user-select:none; -webkit-user-select:none; touch-action:none; }
-  .crop-inner{ position:relative; display:inline-block; }
-  .crop-inner img{ display:block; pointer-events:none; }
-  .crop-rect{ position:absolute; border:2px solid #fff; outline:1px solid var(--accent); box-shadow:0 0 0 9999px rgba(15,20,28,0.55); cursor:move; touch-action:none; }
-  .crop-h{ position:absolute; width:14px; height:14px; background:#fff; border:2px solid var(--accent); border-radius:3px; margin:-7px 0 0 -7px; touch-action:none; }
 
   .faq-item{ border-bottom:1px solid var(--line); }
   .faq-item summary{ cursor:pointer; padding:12px 4px; font-size:13.5px; font-weight:700; color:var(--text); list-style:none; display:flex; justify-content:space-between; gap:10px; line-height:1.6; }
@@ -422,7 +405,7 @@
       </div>
       <div class="feature-row reveal">
         <div class="icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 6l12 12M6 18L18 6" stroke-linecap="round"/><circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/></svg></div>
-        <div><h3>トリミング</h3><p>クリップの両端をつまんでドラッグするだけで、長さを伸縮できます。画像は、表示する範囲の切り抜きもできます。</p></div>
+        <div><h3>トリミング</h3><p>クリップの両端をつまんでドラッグするだけで、長さを伸縮できます。</p></div>
       </div>
       <div class="feature-row reveal">
         <div class="icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12a8 8 0 1 1 8 8" stroke-linecap="round"/><path d="M12 8v4l3 2" stroke-linecap="round"/></svg></div>
@@ -472,7 +455,6 @@
       <div class="preview-wrap" id="previewWrap">
         <canvas id="previewCanvas" class="hidden"></canvas>
         <div id="telopOverlay"></div>
-        <div id="imageOverlay"></div>
         <div class="preview-empty" id="previewEmpty">
           <div class="pe-icon">⬆</div>
           <div class="pe-title">ここに動画・画像をドロップして追加</div>
@@ -492,7 +474,6 @@
           <button class="btn btn-sm add-telop-trigger" id="addTelopBtn" disabled>＋ テロップを追加</button>
         </div>
       </div>
-      <div class="panel-sub" style="margin-top:8px;">タイムライン上のバーはドラッグで移動、端をつまんで伸縮できます。画像・テロップは上下にドラッグしてトラックを移せます。バーを右クリック（スマホは長押し）すると、画像・テロップの最前面／最背面を切り替えられます。テロップはプレビュー上のダブルクリックで文字を編集できます。画像はプレビュー上で、角をドラッグして拡大縮小、ダブルクリックでトリミングできます。</div>
 
       <div class="timeline-wrap">
         <div class="timeline-body">
@@ -650,7 +631,6 @@
     activeImageTrack: 0,
     exportFormat: 'webm',
     editingTelopId: null,
-    imageMode: 'scale',   // 選択中の画像をプレビュー上で操作するモード: 'scale'（拡大縮小・移動）/ 'crop'（トリミング）
   };
   let audioCtx = null;
   let uid = 0;
@@ -662,7 +642,7 @@
     landing: $('landing'), editor: $('editor'), editorOnlyActions: $('editorOnlyActions'),
     headerStartBtn: $('headerStartBtn'),
     previewWrap: $('previewWrap'),
-    canvas: $('previewCanvas'), previewEmpty: $('previewEmpty'), telopOverlay: $('telopOverlay'), imageOverlay: $('imageOverlay'),
+    canvas: $('previewCanvas'), previewEmpty: $('previewEmpty'), telopOverlay: $('telopOverlay'),
     previewFileBtn: $('previewFileBtn'),
     playBtn: $('playBtn'), playIcon: $('playIcon'),
     curTime: $('curTime'), totalTime: $('totalTime'),
@@ -878,13 +858,12 @@
     + qa('ログインやアカウント登録は必要ですか？', 'いいえ、必要ありません。ページを開いてファイルを選ぶだけで、すぐに使い始められます。')
     + qa('アップロードした動画や画像は外部に送信されますか？', '送信されません。読み込んだファイルの処理は、すべてお使いのブラウザの中だけで行われます。')
     + qa('「保存」と「書き出し」はどう違いますか？',
-        '<b>保存</b>は、編集中の「作業データ」（読み込んだ素材、タイムライン上の配置、速度・音量・ミュート・逆再生、トリミング、テロップ、プロジェクト名など）をお使いのブラウザ内に残す機能です。次に編集画面を開いたとき、「復元する」から続きを編集できます。動画ファイルとしては出力されず、別の端末や別のブラウザでは開けません。ブラウザのサイトデータを削除すると消えます。<br><br>'
+        '<b>保存</b>は、編集中の「作業データ」（読み込んだ素材、タイムライン上の配置、速度・音量・ミュート・逆再生、テロップ、プロジェクト名など）をお使いのブラウザ内に残す機能です。次に編集画面を開いたとき、「復元する」から続きを編集できます。動画ファイルとしては出力されず、別の端末や別のブラウザでは開けません。ブラウザのサイトデータを削除すると消えます。<br><br>'
       + '<b>書き出し</b>は、編集結果を完成したファイル（WebM／MP4／MP3）としてダウンロードする機能です。スマホへの保存やSNS・動画サイトへの投稿など、Zanulis以外の場所で使えます。ただし、書き出したファイルからZanulis上で編集を再開することはできません。<br><br>'
       + '続きを編集したいときは「保存」、完成品が欲しいときは「書き出し」です。迷ったら両方行うのがおすすめです。')
     + qa('書き出せる形式は何ですか？', 'WebM、MP4、MP3の3種類です。MP4はブラウザによって非対応の場合があり、その場合は自動でWebMになります（完了時に実際の形式をお知らせします）。MP3は映像を含まない、音声だけのファイルです。')
     + qa('書き出しに時間がかかります。', '動画（WebM／MP4）は、編集内容を実際の再生と同じ速さで記録するため、動画の長さとほぼ同じ時間がかかります。書き出し中は別のタブに切り替えたり、画面を閉じたりしないでください。やめたいときは、表示中の「キャンセル」を押すと、ファイルを保存せずに中止できます。MP3は再生を待たずに変換するので、より短い時間で終わります。')
     + qa('トラックはどう使い分けますか？', 'タイムラインには「動画」「画像」「音声」「テロップ」のトラックがあります。動画は1本のトラックにまとまっています。画像とテロップは、「＋ 画像のトラックを追加」「＋ テロップのトラックを追加」で必要な分だけトラックを増やせます。画像・テロップは、バーを上下にドラッグするか、右クリック（スマホは長押し）のメニューから別のトラックへ移せます（動画と音声は1本ずつなので対象外です）。画像・テロップのバーを右クリックすると、「最前面」（動画より手前）か「最背面」（動画より奥）かを選べます。最前面と最背面はプレビューにも書き出しにも反映されます。なお、動画が画面いっぱいのときは、最背面のものは動画に隠れます。')
-    + qa('画像のトリミング（切り抜き）や拡大縮小はどうやりますか？', '別のウィンドウは開かず、プレビュー上でそのまま操作します。画像をクリックして選ぶと枠が表示されます（再生位置を画像の表示範囲内に合わせてください）。<br><br><b>拡大縮小</b>：枠の中をドラッグで移動、四隅をドラッグで、反対側の角を固定したまま拡大縮小できます。<br><b>トリミング</b>：画像をダブルクリック（または上部の「トリミング」ボタン）で切り替わります。辺や角をドラッグして切り抜き、外側へ戻すと切り取った部分が復活します。もう一度ダブルクリックすると拡大縮小に戻ります。<br><br>右側の「トリミングを解除」でいつでも元に戻せます。動画がなくても使えます。トリミングできるのは画像のみで、表示する長さは、タイムライン上のバーの端をドラッグして調整します。')
     + qa('バーを右クリック（スマホは長押し）すると何ができますか？', 'タイムライン上のバーを右クリック（スマホ・タブレットでは長押し）すると、メニューが開きます。再生位置（赤い線）での分割、複製、逆再生、ミュート、画像・テロップの最前面／最背面の切り替え、画像トラックの移動、削除などができます。バーを選択した状態でDeleteキーを押すと、そのバーを削除できます。')
     + qa('テロップの文字はどう編集しますか？', '「＋テロップを追加」で追加したあと、プレビュー上のテロップをダブルクリックすると、その場で文字を入力できます。Enterで確定します。ドラッグで位置を移動、ホイールやピンチで大きさを変更でき、右側のパネルやタイムライン上のバーの右クリックからも編集できます。同じトラックの再生位置にすでにテロップがあるときは、重ならないようにそのテロップの直後に追加されます。');
 
@@ -986,7 +965,7 @@
       return JSON.stringify({
         n: els.projectName ? els.projectName.value : '',
         c: state.clips.map(function(c){
-          return [c.name, c.type, c.track||0, c.trackStart, c.trimStart, c.trimEnd, c.speed, c.volume, c.reverse?1:0, c.crop||null, c.layer||null, c.scale||null, c.ox||0, c.oy||0, c.file ? c.file.size : 0];
+          return [c.name, c.type, c.track||0, c.trackStart, c.trimStart, c.trimEnd, c.speed, c.volume, c.reverse?1:0, c.layer||null, c.scale||null, c.file ? c.file.size : 0];
         }),
         t: state.telops, tc: state.telopTrackCount, ic: state.imageTrackCount
       });
@@ -1047,7 +1026,7 @@
     showLoading('保存中...');
     try{
       const clipsData = state.clips.map(c=>({
-        name:c.name, type:c.type, blob:c.file, lane:c.lane||null, track:c.track||0, crop:c.crop||null, layer:c.layer||null, scale:c.scale||null, ox:c.ox||0, oy:c.oy||0, trackStart:c.trackStart,
+        name:c.name, type:c.type, blob:c.file, lane:c.lane||null, track:c.track||0, layer:c.layer||null, scale:c.scale||null, trackStart:c.trackStart,
         trimStart:c.trimStart, trimEnd:c.trimEnd, speed:c.speed, volume:c.volume, prevVolume:c.prevVolume||null, reverse:!!c.reverse,
       }));
       const telopsData = state.telops.map(t=>({...t}));
@@ -1080,10 +1059,9 @@
         clip.speed = cd.speed || 1;
         clip.volume = cd.volume==null ? 1 : cd.volume;
         if(cd.prevVolume) clip.prevVolume = cd.prevVolume;
-        clip.layer = cd.layer || undefined; clip.scale = cd.scale || undefined; clip.ox = cd.ox || 0; clip.oy = cd.oy || 0;
+        clip.layer = cd.layer || undefined; clip.scale = cd.scale || undefined;
         if(clip.type==='video') clip.lane = 'v1';
         if(clip.type==='image'){ clip.track = cd.track || 0; }
-        if(clip.type==='image' && cd.crop){ clip.crop = cd.crop; clip.thumbUrl = makeImageThumb(clip); }
         if(clip.type !== 'image'){
           setupAudioGraph(clip);
           if(clip.audioGain) clip.audioGain.gain.value = clip.volume;
@@ -1150,10 +1128,7 @@
     const v = state.clips.find(c=> c.type==='video' && c.video.videoWidth);
     if(v) return {w:v.video.videoWidth, h:v.video.videoHeight};
     const im = state.clips.find(c=> c.type==='image' && c.naturalWidth);
-    if(im){
-      const cr = im.crop || {x:0,y:0,w:1,h:1};
-      return {w:Math.max(2,Math.round(im.naturalWidth*cr.w)), h:Math.max(2,Math.round(im.naturalHeight*cr.h))};
-    }
+    if(im) return {w:im.naturalWidth, h:im.naturalHeight};
     return {w:960,h:540};
   }
 
@@ -1360,7 +1335,7 @@
   }
 
   function selectEntity(kind, id){
-    if(kind==='clip'){ if(state.selectedClipId!==id) state.imageMode = 'scale'; state.selectedClipId = id; state.selectedTelopId = null; }
+    if(kind==='clip'){ state.selectedClipId = id; state.selectedTelopId = null; }
     else { state.selectedTelopId = id; state.selectedClipId = null; }
     renderClipList(); markSelectedBars(); renderTelopOverlay(); renderPropsPanel();
   }
@@ -1381,39 +1356,9 @@
       if(!clip){ els.propsPanel.innerHTML = '<div class="empty-panel">タイムライン上のクリップやテロップをクリックすると、ここで編集できます</div>'; return; }
 
       if(clip.type==='image'){
-        const resetBtn = clip.crop ? '<button class="btn btn-sm btn-block btn-ghost" id="cropResetBtn" style="margin-top:6px;">トリミングを解除</button>' : '';
-        let ph = '<div style="font-size:13px;font-weight:700;margin-bottom:14px;color:var(--text);">'+escapeHtml(clip.name)+'</div>';
-        {
-          const sc = clip.scale || 1, ox = clip.ox || 0, oy = clip.oy || 0;
-          ph += '<div class="panel-title">重なり順</div><div class="chip-grid">'
-            + '<button class="chip '+(clip.layer!=='back'?'active':'')+'" data-layer="front">画像を最前面</button>'
-            + '<button class="chip '+(clip.layer==='back'?'active':'')+'" data-layer="back">画像を最背面</button></div>'
-            + '<div class="panel-sub">最背面にすると、画像が動画の後ろに表示されます。動画が画面いっぱいのときは動画に隠れるので、動画の「表示サイズ」を小さくすると見えます。</div>'
-            + '<div class="panel-title">トリミング（切り抜き）</div>'
-            + '<button class="btn btn-sm btn-block" id="cropBtn">プレビューでトリミング</button>' + resetBtn
-            + '<div class="panel-title">拡大縮小・位置</div>'
-            + '<div class="field-row"><span class="lbl">サイズ</span><span class="val" id="imgScaleVal">'+Math.round(sc*100)+'%</span></div>'
-            + '<input type="range" id="imgScale" min="0.02" max="6" step="0.01" value="'+sc+'">'
-            + '<div class="field-row"><span class="lbl">横位置</span><span class="val" id="imgOxVal">'+Math.round(ox*100)+'</span></div>'
-            + '<input type="range" id="imgOx" min="-1" max="1" step="0.01" value="'+ox+'">'
-            + '<div class="field-row"><span class="lbl">縦位置</span><span class="val" id="imgOyVal">'+Math.round(oy*100)+'</span></div>'
-            + '<input type="range" id="imgOy" min="-1" max="1" step="0.01" value="'+oy+'">';
-        }
-        ph += '<div class="panel-sub">プレビュー上で、画像の角をドラッグすると拡大縮小、ダブルクリックするとトリミング（辺・角をドラッグ）に切り替わります。再生位置が画像の表示範囲内にあるときに操作できます。</div><div class="panel-sub">画像はタイムライン上のバーの端をドラッグすると、表示時間を調整できます。</div>'
+        els.propsPanel.innerHTML = '<div style="font-size:13px;font-weight:700;margin-bottom:14px;color:var(--text);">'+escapeHtml(clip.name)+'</div>'
+          + '<div class="panel-sub">画像はタイムライン上のバーの端をドラッグすると、表示時間を調整できます。重なり順（最前面／最背面）は、バーを右クリックして設定できます。</div>'
           + '<button class="btn btn-sm btn-block" id="deleteClipBtn" style="margin-top:18px;">このクリップを削除</button>';
-        els.propsPanel.innerHTML = ph;
-        const cb = $('cropBtn'); if(cb) cb.addEventListener('click', ()=> openCropEditor(clip));
-        const crb = $('cropResetBtn');
-        if(crb) crb.addEventListener('click', ()=>{ clip.crop = null; clip.thumbUrl = makeImageThumb(clip); afterCropChange(); });
-        els.propsPanel.querySelectorAll('[data-layer]').forEach(function(btn){
-          btn.addEventListener('click', function(){ clip.layer = btn.dataset.layer; renderPropsPanel(); redrawCanvasOnly(state.currentGlobalTime); });
-        });
-        [['imgScale','imgScaleVal','scale',function(v){ return Math.round(v*100)+'%'; }],
-         ['imgOx','imgOxVal','ox',function(v){ return String(Math.round(v*100)); }],
-         ['imgOy','imgOyVal','oy',function(v){ return String(Math.round(v*100)); }]].forEach(function(a){
-          const el = $(a[0]); if(!el) return;
-          el.addEventListener('input', function(){ clip[a[2]] = parseFloat(el.value); $(a[1]).textContent = a[3](clip[a[2]]); redrawCanvasOnly(state.currentGlobalTime); });
-        });
         $('deleteClipBtn').addEventListener('click', ()=> deleteClip(clip.id));
         return;
       }
@@ -1499,11 +1444,9 @@
   }
   async function cloneClip(c){
     const n = await createClip(c.file, c.name);
-    n.speed = c.speed; n.volume = c.volume; n.prevVolume = c.prevVolume; n.lane = c.lane; n.track = c.track; n.layer = c.layer; n.scale = c.scale; n.ox = c.ox; n.oy = c.oy;
-    n.crop = c.crop ? Object.assign({}, c.crop) : null;
+    n.speed = c.speed; n.volume = c.volume; n.prevVolume = c.prevVolume; n.lane = c.lane; n.track = c.track; n.layer = c.layer; n.scale = c.scale;
     n.trimStart = c.trimStart; n.trimEnd = c.trimEnd; n.trackStart = c.trackStart;
     if(n.type!=='image'){ setupAudioGraph(n); if(n.audioGain) n.audioGain.gain.value = n.volume; }
-    if(n.type==='image' && n.crop) n.thumbUrl = makeImageThumb(n);
     if(c.reverse && c.reversedData){ n.reverse = true; n.reversedData = c.reversedData; n.reverseAudio = c.reverseAudio; ensureRevGain(n); }
     return n;
   }
@@ -1597,7 +1540,6 @@
           items.push({ label:'画像' + (idx+1) + 'へ移動', onClick:function(){ c.track = idx; afterClipsChanged(); } });
         })(i);
       }
-      items.push({ label:'トリミング…', onClick:function(){ openCropEditor(c); } });
     }
     if(c.type!=='image'){
       const muted = c.volume===0;
@@ -1609,190 +1551,6 @@
     items.push({ label:'削除', danger:true, onClick:function(){ deleteClip(c.id); } });
     return items;
   }
-
-  // ---- image crop editor (images only) ----
-  function afterCropChange(){
-    computeTimelineDuration(); renderClipList(); renderPropsPanel();
-    renderFrameAtGlobalTime(state.currentGlobalTime);
-  }
-  // ---------- 画像をプレビュー上で直接操作（拡大縮小・移動・トリミング） ----------
-  // 'scale': 本体をドラッグで移動、四隅をドラッグで拡大縮小（反対側の角を固定）
-  // 'crop' : 辺・四隅をドラッグして切り抜き（外側に広げると、切り取った部分が戻る）
-  let gizmoRef = null, imgDrag = null;
-  function imageGeom(c, W, H){
-    const cr = cropOf(c), sw = c.naturalWidth*cr.w, sh = c.naturalHeight*cr.h;
-    if(!sw || !sh) return null;
-    const base = Math.min(W/sw, H/sh), s = base*(c.scale||1);
-    return { sw:sw, sh:sh, base:base, s:s, dw:sw*s, dh:sh*s, mx:W/2 + (c.ox||0)*W, my:H/2 + (c.oy||0)*H };
-  }
-  // キャンバス座標 (cx, cy) にある、いちばん手前の画像（動画に隠れた最背面の画像は除く）
-  function imageAtPoint(cx, cy, t){
-    const W = els.canvas.width, H = els.canvas.height;
-    const imgs = activeImagesAt(t);
-    const hasVideo = activeVideos(t).length > 0;
-    const order = imgs.filter(function(c){ return c.layer==='back' && !hasVideo; }).concat(imgs.filter(function(c){ return c.layer!=='back'; }));
-    let hit = null;
-    order.forEach(function(c){
-      const g = imageGeom(c, W, H);
-      if(g && Math.abs(cx-g.mx) <= g.dw/2 && Math.abs(cy-g.my) <= g.dh/2) hit = c;
-    });
-    return hit;
-  }
-  function positionGizmo(){
-    if(!gizmoRef) return;
-    const clip = gizmoRef.clip, W = els.canvas.width, H = els.canvas.height;
-    const g = imageGeom(clip, W, H);
-    if(!g) return;
-    const r = els.canvas.getBoundingClientRect().width / W;
-    const L = g.mx - g.dw/2, T = g.my - g.dh/2;
-    const b = gizmoRef.box;
-    b.style.left = (L*r)+'px'; b.style.top = (T*r)+'px'; b.style.width = (g.dw*r)+'px'; b.style.height = (g.dh*r)+'px';
-    if(gizmoRef.ghost){
-      const cr = cropOf(clip), gh = gizmoRef.ghost;
-      gh.style.left = ((L - clip.naturalWidth*cr.x*g.s)*r)+'px';
-      gh.style.top = ((T - clip.naturalHeight*cr.y*g.s)*r)+'px';
-      gh.style.width = (clip.naturalWidth*g.s*r)+'px';
-      gh.style.height = (clip.naturalHeight*g.s*r)+'px';
-    }
-  }
-  function renderImageGizmo(){
-    const ov = els.imageOverlay;
-    ov.innerHTML = ''; gizmoRef = null;
-    if(state.isPlaying || state.exporting || !state.selectedClipId) return;
-    const clip = state.clips.find(function(c){ return c.id===state.selectedClipId; });
-    if(!clip || clip.type!=='image' || els.canvas.classList.contains('hidden')) return;
-    const t = state.currentGlobalTime;
-    if(!(t >= clip.trackStart && t < clip.trackStart + clipDuration(clip))) return;   // 再生位置が画像の表示範囲内のときだけ操作できる
-    const cr = els.canvas.getBoundingClientRect(), wr = els.canvas.parentElement.getBoundingClientRect();
-    if(!cr.width) return;
-    ov.style.left = (cr.left-wr.left)+'px'; ov.style.top = (cr.top-wr.top)+'px';
-    ov.style.width = cr.width+'px'; ov.style.height = cr.height+'px';
-    const mode = state.imageMode === 'crop' ? 'crop' : 'scale';
-
-    let ghost = null;
-    if(mode==='crop'){
-      const wrap = document.createElement('div'); wrap.className = 'img-ghost-clip';
-      ghost = document.createElement('img'); ghost.className = 'img-ghost'; ghost.draggable = false; ghost.alt = ''; ghost.src = clip.url;
-      wrap.appendChild(ghost); ov.appendChild(wrap);
-    }
-    const box = document.createElement('div');
-    box.className = 'img-box ' + mode;
-    const defs = mode==='crop'
-      ? [['nw',0,0,'nwse-resize'],['n',50,0,'ns-resize'],['ne',100,0,'nesw-resize'],['e',100,50,'ew-resize'],['se',100,100,'nwse-resize'],['s',50,100,'ns-resize'],['sw',0,100,'nesw-resize'],['w',0,50,'ew-resize']]
-      : [['nw',0,0,'nwse-resize'],['ne',100,0,'nesw-resize'],['se',100,100,'nwse-resize'],['sw',0,100,'nesw-resize']];
-    defs.forEach(function(h){
-      const el = document.createElement('div');
-      el.className = 'img-h'; el.dataset.h = h[0];
-      el.style.left = h[1]+'%'; el.style.top = h[2]+'%'; el.style.cursor = h[3];
-      box.appendChild(el);
-    });
-    box.addEventListener('pointerdown', function(e){
-      startImgDrag(e, (e.target.dataset && e.target.dataset.h) ? e.target.dataset.h : 'move');
-    });
-    ov.appendChild(box);
-
-    const bar = document.createElement('div');
-    bar.className = 'img-toolbar';
-    bar.innerHTML = '<button data-m="scale" class="'+(mode==='scale'?'active':'')+'">拡大縮小</button><button data-m="crop" class="'+(mode==='crop'?'active':'')+'">トリミング</button>';
-    bar.addEventListener('pointerdown', function(e){ e.stopPropagation(); });
-    bar.querySelectorAll('button').forEach(function(b){
-      b.addEventListener('click', function(e){ e.stopPropagation(); state.imageMode = b.dataset.m; renderImageGizmo(); });
-    });
-    ov.appendChild(bar);
-    const hint = document.createElement('div');
-    hint.className = 'img-hint';
-    hint.textContent = mode==='crop' ? '辺・角をドラッグで切り抜き（ダブルクリックで戻る）' : 'ドラッグで移動 / 角をドラッグで拡大縮小';
-    ov.appendChild(hint);
-
-    gizmoRef = { clip:clip, box:box, ghost:ghost };
-    positionGizmo();
-  }
-  // 画像をプレビュー上でトリミングできる状態にする（別ウィンドウは開かない）
-  function openCropEditor(clip){
-    stopPreview();
-    if(state.selectedClipId!==clip.id) selectEntity('clip', clip.id);
-    state.imageMode = 'crop';
-    const t = state.currentGlobalTime;
-    if(!(t >= clip.trackStart && t < clip.trackStart + clipDuration(clip))) renderFrameAtGlobalTime(clip.trackStart);
-    else renderImageGizmo();
-  }
-  function startImgDrag(e, h){
-    if(e.button!==0 && e.button!==undefined) return;
-    if(!gizmoRef) return;
-    e.preventDefault(); e.stopPropagation();
-    const clip = gizmoRef.clip, W = els.canvas.width, H = els.canvas.height;
-    const g = imageGeom(clip, W, H);
-    if(!g) return;
-    imgDrag = { clip:clip, h:h, W:W, H:H, g:g, sx:e.clientX, sy:e.clientY, crop:Object.assign({}, cropOf(clip)), ox0:clip.ox||0, oy0:clip.oy||0, moved:false };
-    try{ e.target.setPointerCapture(e.pointerId); }catch(err){}
-  }
-  window.addEventListener('pointermove', function(e){
-    if(!imgDrag) return;
-    const d = imgDrag, clip = d.clip, W = d.W, H = d.H, g = d.g;
-    const r = els.canvas.getBoundingClientRect();
-    if(!r.width) return;
-    const k = W / r.width;
-    const px = (e.clientX - r.left)*k, py = (e.clientY - r.top)*k;
-    const clamp = function(v,a,b){ return Math.min(b, Math.max(a, v)); };
-    d.moved = true;
-    if(d.h==='move'){
-      clip.ox = clamp(d.ox0 + (e.clientX-d.sx)*k/W, -1, 1);
-      clip.oy = clamp(d.oy0 + (e.clientY-d.sy)*k/H, -1, 1);
-    } else if(state.imageMode==='scale'){
-      // 反対側の角を固定して、縦横比を保ったまま拡大縮小
-      const hx = d.h.indexOf('e')>=0 ? 1 : -1, hy = d.h.indexOf('s')>=0 ? 1 : -1;
-      const fx = g.mx - hx*g.dw/2, fy = g.my - hy*g.dh/2;
-      const dxp = (px-fx)*hx, dyp = (py-fy)*hy;
-      let sNew = (dxp*g.sw + dyp*g.sh) / (g.sw*g.sw + g.sh*g.sh);
-      sNew = clamp(sNew, g.base*0.02, g.base*20);
-      clip.scale = sNew / g.base;
-      clip.ox = clamp((fx + hx*g.sw*sNew/2 - W/2)/W, -1, 1);
-      clip.oy = clamp((fy + hy*g.sh*sNew/2 - H/2)/H, -1, 1);
-    } else {
-      // トリミング：画像の拡大率と、動かしていない辺の位置は変えずに、辺だけを動かす
-      const nw = clip.naturalWidth, nh = clip.naturalHeight, c0 = d.crop, s0 = g.s;
-      const L = g.mx - g.dw/2, T = g.my - g.dh/2, R = g.mx + g.dw/2, B = g.my + g.dh/2;
-      let x0 = c0.x*nw, x1 = (c0.x+c0.w)*nw, y0 = c0.y*nh, y1 = (c0.y+c0.h)*nh;
-      const minX = nw*0.05, minY = nh*0.05;
-      const srcX = c0.x*nw + (px-L)/s0, srcY = c0.y*nh + (py-T)/s0;
-      const hasW = d.h.indexOf('w')>=0, hasE = d.h.indexOf('e')>=0, hasN = d.h.indexOf('n')>=0, hasS = d.h.indexOf('s')>=0;
-      if(hasW) x0 = clamp(srcX, 0, x1-minX);
-      if(hasE) x1 = clamp(srcX, x0+minX, nw);
-      if(hasN) y0 = clamp(srcY, 0, y1-minY);
-      if(hasS) y1 = clamp(srcY, y0+minY, nh);
-      const sw2 = x1-x0, sh2 = y1-y0;
-      clip.crop = { x:x0/nw, y:y0/nh, w:sw2/nw, h:sh2/nh };
-      clip.scale = s0 / Math.min(W/sw2, H/sh2);
-      const dw2 = sw2*s0, dh2 = sh2*s0;
-      const mx2 = hasW ? R - dw2/2 : (hasE ? L + dw2/2 : g.mx);
-      const my2 = hasN ? B - dh2/2 : (hasS ? T + dh2/2 : g.my);
-      clip.ox = (mx2 - W/2)/W; clip.oy = (my2 - H/2)/H;
-    }
-    redrawCanvasOnly(state.currentGlobalTime);   // 操作中は描画サイズを固定して、枠と画像を同じフレームで動かす
-    positionGizmo();
-  });
-  function endImgDrag(){
-    if(!imgDrag) return;
-    const d = imgDrag; imgDrag = null;
-    if(!d.moved) return;
-    const clip = d.clip, cr = clip.crop;
-    if(cr && cr.x<=0.001 && cr.y<=0.001 && cr.w>=0.999 && cr.h>=0.999) clip.crop = null;
-    clip.thumbUrl = makeImageThumb(clip);
-    afterCropChange();
-  }
-  window.addEventListener('pointerup', endImgDrag);
-  window.addEventListener('pointercancel', endImgDrag);
-  // プレビュー上の画像をクリックして選択
-  els.previewWrap.addEventListener('pointerdown', function(e){
-    if(state.isPlaying || state.exporting || els.canvas.classList.contains('hidden')) return;
-    if(e.button!==0 && e.button!==undefined) return;
-    if(e.target.closest && (e.target.closest('#imageOverlay') || e.target.closest('.telop-handle'))) return;
-    const r = els.canvas.getBoundingClientRect();
-    if(!r.width || !r.height) return;
-    const cx = (e.clientX-r.left)/r.width*els.canvas.width, cy = (e.clientY-r.top)/r.height*els.canvas.height;
-    const hit = imageAtPoint(cx, cy, state.currentGlobalTime);
-    if(hit && hit.id!==state.selectedClipId) selectEntity('clip', hit.id);
-  });
 
   function deleteTelop(id){
     state.telops = state.telops.filter(t=>t.id!==id);
@@ -1841,7 +1599,7 @@
   // The canvas is the ONLY thing that renders the visible text while the telop is active.
   // The overlay handle only draws the dashed box (text is transparent), so the text can never appear twice.
   let telopDrag = null;
-  function clearTelopOverlay(){ state.editingTelopId = null; if(els.telopOverlay.firstChild) els.telopOverlay.innerHTML = ''; if(els.imageOverlay.firstChild){ els.imageOverlay.innerHTML = ''; gizmoRef = null; } }
+  function clearTelopOverlay(){ state.editingTelopId = null; if(els.telopOverlay.firstChild) els.telopOverlay.innerHTML = ''; }
   function styleTelopHandle(handle, tp){
     const f = fontOf(tp);
     const canvasRect = els.canvas.getBoundingClientRect();
@@ -1858,7 +1616,6 @@
   function renderTelopOverlay(){
     clearTelopOverlay();
     if(state.isPlaying || state.exporting) return;
-    renderImageGizmo();
     const tp = state.telops.find(t=>t.id===state.selectedTelopId);
     if(!tp || !state.clips.length || els.canvas.classList.contains('hidden')) return;
     const canvasRect = els.canvas.getBoundingClientRect();
@@ -2002,15 +1759,7 @@
       const hw = ctx.measureText(tp.text||'').width/2 + px*0.3, hh = px*0.65;
       if(Math.abs(cx - els.canvas.width*(tp.x==null?0.5:tp.x)) <= hw && Math.abs(cy - els.canvas.height*(tp.y==null?0.85:tp.y)) <= hh) hit = tp;
     });
-    if(hit){ startTelopEdit(hit.id); return; }
-    // テロップがなければ、その位置の画像をダブルクリックでトリミング⇔拡大縮小を切り替え（動画・音声は対象外）
-    const imgHit = imageAtPoint(cx, cy, t);
-    if(imgHit){
-      const was = state.selectedClipId===imgHit.id;
-      if(!was) selectEntity('clip', imgHit.id);
-      state.imageMode = (was && state.imageMode==='crop') ? 'scale' : 'crop';
-      renderImageGizmo();
-    }
+    if(hit) startTelopEdit(hit.id);
   });
 
   // layer: 'back'（最背面）のテロップだけ、または 'front'（最前面・既定）のテロップだけを描く
@@ -2070,23 +1819,12 @@
 
   // 動画は1本のトラック（'v1'）、画像は 'img'（複数トラック）、音声は 'a'
   function laneOf(c){ if(c.type==='image') return 'img'; if(c.type==='audio') return 'a'; return 'v1'; }
-  function cropOf(c){ return c.crop || {x:0,y:0,w:1,h:1}; }
-  function makeImageThumb(clip){
-    const c = document.createElement('canvas'); c.width=160; c.height=90;
-    const cx = c.getContext('2d');
-    const cr = cropOf(clip), nw = clip.naturalWidth, nh = clip.naturalHeight;
-    drawCover(cx, clip.video, nw*cr.w, nh*cr.h, 160, 90, nw*cr.x, nh*cr.y);
-    return c.toDataURL('image/jpeg',0.7);
-  }
-  // images on the image track are shown whole (aspect kept) over the video, after cropping
+  // images on the image track are shown whole (aspect kept, centered) over the video
   function drawImageClip(ctx, clip, cw, ch){
-    const cr = cropOf(clip), nw = clip.naturalWidth, nh = clip.naturalHeight;
-    const sx = nw*cr.x, sy = nh*cr.y, sw = nw*cr.w, sh = nh*cr.h;
-    if(!sw || !sh) return;
-    const k = clip.scale || 1;
-    const s = Math.min(cw/sw, ch/sh)*k, dw = sw*s, dh = sh*s;
-    const cx0 = cw/2 + (clip.ox||0)*cw, cy0 = ch/2 + (clip.oy||0)*ch;
-    ctx.drawImage(clip.video, sx, sy, sw, sh, cx0-dw/2, cy0-dh/2, dw, dh);
+    const nw = clip.naturalWidth, nh = clip.naturalHeight;
+    if(!nw || !nh) return;
+    const s = Math.min(cw/nw, ch/nh), dw = nw*s, dh = nh*s;
+    ctx.drawImage(clip.video, (cw-dw)/2, (ch-dh)/2, dw, dh);
   }
 
   // ---- reverse playback audio ----
