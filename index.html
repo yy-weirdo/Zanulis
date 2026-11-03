@@ -502,7 +502,7 @@
         <div class="dropzone" id="dropzone">
           <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V4M7 9l5-5 5 5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke-linecap="round"/></svg></div>
           ここに動画・画像・音声をドロップして追加<br>または <b id="fileTrigger">ファイルを選択</b>
-          <input type="file" id="fileInput" accept="video/*,audio/*,image/*" multiple class="hidden">
+          <input type="file" id="fileInput" accept="video/*,audio/*,image/*,.mp4,.m4v,.mov,.webm,.mkv,.3gp,.mp3,.m4a,.wav,.ogg,.weba" multiple class="hidden">
         </div>
         <div class="clip-list" id="clipList"><div class="empty-panel">クリップがまだありません</div></div>
       </div>
@@ -861,7 +861,7 @@
         '<b>保存</b>は、編集中の「作業データ」（読み込んだ素材、タイムライン上の配置、速度・音量・ミュート・逆再生、テロップ、プロジェクト名など）をお使いのブラウザ内に残す機能です。次に編集画面を開いたとき、「復元する」から続きを編集できます。動画ファイルとしては出力されず、別の端末や別のブラウザでは開けません。ブラウザのサイトデータを削除すると消えます。<br><br>'
       + '<b>書き出し</b>は、編集結果を完成したファイル（WebM／MP4／MP3）としてダウンロードする機能です。スマホへの保存やSNS・動画サイトへの投稿など、Zanulis以外の場所で使えます。ただし、書き出したファイルからZanulis上で編集を再開することはできません。<br><br>'
       + '続きを編集したいときは「保存」、完成品が欲しいときは「書き出し」です。迷ったら両方行うのがおすすめです。')
-    + qa('書き出せる形式は何ですか？', 'WebM、MP4、MP3の3種類です。MP4はブラウザによって非対応の場合があり、その場合は自動でWebMになります（完了時に実際の形式をお知らせします）。MP3は映像を含まない、音声だけのファイルです。')
+    + qa('書き出せる形式は何ですか？', 'WebM、MP4、MP3の3種類です。MP4はブラウザによって非対応の場合があり（Firefoxなど）、その場合は自動でWebMになります（完了時に実際の形式をお知らせします）。スマホのギャラリーでWebMが再生できないときは、MP4で書き出してください。MP3は映像を含まない、音声だけのファイルです。')
     + qa('書き出しに時間がかかります。', '動画（WebM／MP4）は、編集内容を実際の再生と同じ速さで記録するため、動画の長さとほぼ同じ時間がかかります。書き出し中は別のタブに切り替えたり、画面を閉じたりしないでください。やめたいときは、表示中の「キャンセル」を押すと、ファイルを保存せずに中止できます。MP3は再生を待たずに変換するので、より短い時間で終わります。')
     + qa('トラックはどう使い分けますか？', 'タイムラインには「動画」「画像」「音声」「テロップ」のトラックがあります。動画は1本のトラックにまとまっています。画像とテロップは、「＋ 画像のトラックを追加」「＋ テロップのトラックを追加」で必要な分だけトラックを増やせます。画像・テロップは、バーを上下にドラッグするか、右クリック（スマホは長押し）のメニューから別のトラックへ移せます（動画と音声は1本ずつなので対象外です）。画像・テロップのバーを右クリックすると、「最前面」（動画より手前）か「最背面」（動画より奥）かを選べます。最前面と最背面はプレビューにも書き出しにも反映されます。なお、動画が画面いっぱいのときは、最背面のものは動画に隠れます。')
     + qa('バーを右クリック（スマホは長押し）すると何ができますか？', 'タイムライン上のバーを右クリック（スマホ・タブレットでは長押し）すると、メニューが開きます。再生位置（赤い線）での分割、複製、逆再生、ミュート、画像・テロップの最前面／最背面の切り替え、画像トラックの移動、削除などができます。バーを選択した状態でDeleteキーを押すと、そのバーを削除できます。')
@@ -1132,6 +1132,72 @@
     return {w:960,h:540};
   }
 
+  // ---------- ファイル種別の判定・動画フレームの読み込み補助 ----------
+  // Androidのファイル選択などでMIMEタイプが空（や octet-stream）になる場合があるので、拡張子から補う
+  const EXT_TYPES = {
+    mp4:'video/mp4', m4v:'video/mp4', mov:'video/quicktime', webm:'video/webm', mkv:'video/x-matroska', ogv:'video/ogg', '3gp':'video/3gpp',
+    mp3:'audio/mpeg', m4a:'audio/mp4', aac:'audio/aac', wav:'audio/wav', ogg:'audio/ogg', oga:'audio/ogg', opus:'audio/ogg', flac:'audio/flac', weba:'audio/webm',
+    jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp', bmp:'image/bmp', avif:'image/avif'
+  };
+  function normalizeFile(f){
+    if(/^(video|audio|image)\//.test(f.type || '')) return f;
+    const m = /\.([A-Za-z0-9]+)$/.exec(f.name || '');
+    const ty = m && EXT_TYPES[m[1].toLowerCase()];
+    if(!ty) return null;
+    try{ return new File([f], f.name, { type: ty, lastModified: f.lastModified }); }catch(e){ return f; }
+  }
+  // 動画を画面外のDOMに置く（DOMに無い動画のフレームを描画できないブラウザ対策）
+  function mediaPool(){
+    let el = document.getElementById('mediaPool');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'mediaPool'; el.setAttribute('aria-hidden','true');
+      el.style.cssText = 'position:fixed;left:0;top:0;width:2px;height:2px;overflow:hidden;opacity:0.01;pointer-events:none;z-index:-1;';
+      document.body.appendChild(el);
+    }
+    return el;
+  }
+  // フレームが読み込まれる（readyState>=2）まで待つ
+  async function waitReady(media, ms){
+    const t0 = performance.now();
+    while(media.readyState < 2 && performance.now() - t0 < ms){ await new Promise(function(r){ setTimeout(r, 50); }); }
+  }
+  async function seekAndWait(media, t){
+    await seekTo(media, t);
+    if(media.readyState >= 2) return;
+    try{ media.currentTime = t + 0.01; }catch(e){}   // フレームが読み込まれない端末向け：位置を少しずらして読み込みを促す
+    await waitReady(media, 1500);
+  }
+  // 最初のフレームを描画できる状態にする。だめなら一瞬だけミュート再生してデコードを開始させる
+  async function prepareFrame(media, t){
+    await seekAndWait(media, t);
+    if(media.readyState >= 2 && media.videoWidth) return true;
+    try{
+      const wasMuted = media.muted; media.muted = true;
+      const p = media.play(); if(p && p.then) await p;
+      await new Promise(function(r){ setTimeout(r, 150); });
+      media.pause(); media.muted = wasMuted;
+    }catch(e){ try{ media.pause(); }catch(_){} media.muted = false; }
+    await seekAndWait(media, t);
+    return media.readyState >= 2 && !!media.videoWidth;
+  }
+  // MediaRecorder製のWebMなど、長さが Infinity になるファイルの長さを求める
+  function resolveInfiniteDuration(media){
+    return new Promise(function(res){
+      let done = false;
+      function fin(){
+        if(done) return; done = true;
+        media.removeEventListener('durationchange', onDur); media.removeEventListener('timeupdate', onDur);
+        try{ media.currentTime = 0; }catch(e){}
+        res();
+      }
+      function onDur(){ if(isFinite(media.duration)) fin(); }
+      media.addEventListener('durationchange', onDur); media.addEventListener('timeupdate', onDur);
+      try{ media.currentTime = 1e101; }catch(e){ fin(); return; }
+      setTimeout(fin, 4000);
+    });
+  }
+
   function createClip(fileOrBlob, overrideName){
     return new Promise((resolve, reject)=>{
       const fType = fileOrBlob.type || '';
@@ -1168,10 +1234,24 @@
       }
 
       const media = document.createElement(isAudio ? 'audio' : 'video');
-      media.src = url; media.preload = 'auto';
-      if(!isAudio){ media.playsInline = true; media.setAttribute('playsinline',''); media.setAttribute('webkit-playsinline',''); }
+      media.preload = 'auto';
+      if(!isAudio){
+        media.playsInline = true; media.setAttribute('playsinline',''); media.setAttribute('webkit-playsinline','');
+        media.style.cssText = 'width:2px;height:2px;';
+        mediaPool().appendChild(media);
+      }
       media.muted = false;
+      media.src = url;
+      let settled = false;
+      const fail = function(msg){
+        if(settled) return; settled = true;
+        try{ if(media.parentNode) media.parentNode.removeChild(media); }catch(e){}
+        try{ URL.revokeObjectURL(url); }catch(e){}
+        reject(new Error(msg));
+      };
       media.addEventListener('loadedmetadata', async ()=>{
+        if(!isFinite(media.duration)) await resolveInfiniteDuration(media);
+        if(!isFinite(media.duration) || media.duration <= 0){ fail('ファイルの読み込みに失敗しました：' + name + '（長さを取得できませんでした）'); return; }
         const clip = {
           id: genId('clip'), name, type: isAudio ? 'audio' : 'video',
           video: media, url, file: fileOrBlob,
@@ -1183,16 +1263,22 @@
         };
         if(!isAudio){
           try{
-            const seekT = Math.min(0.2, media.duration/2);
-            await seekTo(media, seekT);
-            const c = document.createElement('canvas'); c.width=160; c.height=90;
-            const cx = c.getContext('2d'); cx.drawImage(media,0,0,160,90);
-            clip.thumbUrl = c.toDataURL('image/jpeg',0.7);
+            const ok = await prepareFrame(media, Math.min(0.2, media.duration/2));
+            if(ok){
+              const c = document.createElement('canvas'); c.width=160; c.height=90;
+              const cx = c.getContext('2d'); cx.drawImage(media,0,0,160,90);
+              clip.thumbUrl = c.toDataURL('image/jpeg',0.7);
+            }
           }catch(e){}
         } else { clip.thumbUrl = makeAudioThumb(); }
+        settled = true;
         resolve(clip);
       }, {once:true});
-      media.addEventListener('error', ()=>{ try{ URL.revokeObjectURL(url); }catch(e){} reject(new Error('ファイルの読み込みに失敗しました：' + name + '（非対応の形式、または壊れたファイルの可能性があります）')); });
+      // 最初のフレームが遅れて届く端末（Android Firefoxなど）向け：届いた時点でプレビューを描き直す
+      media.addEventListener('loadeddata', function(){
+        if(!state.isPlaying && !state.exporting){ try{ redrawCanvasOnly(state.currentGlobalTime); }catch(e){} }
+      });
+      media.addEventListener('error', function(){ fail('ファイルの読み込みに失敗しました：' + name + '（非対応の形式、または壊れたファイルの可能性があります）'); });
     });
   }
 
@@ -1212,8 +1298,8 @@
     const all = Array.from(fileList);
     const files = [], rejected = [];
     all.forEach(function(f){
-      if(f.type.startsWith('video/') || f.type.startsWith('audio/') || f.type.startsWith('image/')) files.push(f);
-      else rejected.push(f.name);
+      const nf = normalizeFile(f);
+      if(nf) files.push(nf); else rejected.push(f.name);
     });
     if(rejected.length) alert('非対応のファイル形式のため、読み込めませんでした：\n' + rejected.join('\n') + '\n\n対応しているのは、動画・画像・音声ファイルです。');
     if(!files.length){ els.fileInput.value = ''; return; }
@@ -1238,6 +1324,7 @@
     hideLoading();
     computeTimelineDuration(); renderClipList(); renderTimeline();
     els.fileInput.value = '';
+    renderFrameAtGlobalTime(state.currentGlobalTime);   // 読み込み直後にプレビューを描く
     if(failed.length) alert(failed.join('\n'));
   }
 
@@ -1299,6 +1386,7 @@
     try{ if(clip.revGain) clip.revGain.disconnect(); }catch(e){}
     if(clip.type!=='image'){
       try{ clip.video.removeAttribute('src'); clip.video.load(); }catch(e){}
+      try{ if(clip.video.parentNode) clip.video.parentNode.removeChild(clip.video); }catch(e){}
     }
   }
   function deleteClip(id){
@@ -2018,7 +2106,7 @@
       const active = t>=c.trackStart && t<c.trackStart+d;
       if(active){
         const localT = Math.min(Math.max(c.trimStart + (t-c.trackStart)*c.speed, c.trimStart), Math.max(c.trimStart, c.trimEnd-0.02));
-        seeks.push(seekTo(media, localT));
+        seeks.push(seekAndWait(media, localT));
       } else {
         try{ media.pause(); }catch(e){}
       }
@@ -2302,7 +2390,7 @@
     renderFrameAtGlobalTime(frac*state.timelineDuration);
   });
 
-  const FORMAT_NOTE_DEFAULT = 'MP4はブラウザによって非対応の場合、自動でWebMに切り替わります。';
+  const FORMAT_NOTE_DEFAULT = 'MP4はブラウザによって非対応の場合、自動でWebMに切り替わります。スマホのギャラリーなどでWebMが再生できないときは、MP4で書き出してください。';
   const FORMAT_NOTE_MP3 = 'MP3は音声のみを書き出します（映像・テロップは含まれません）。';
   function renderFormatChips(){
     els.formatChips.querySelectorAll('[data-format]').forEach(function(b){ b.classList.toggle('active', state.exportFormat===b.dataset.format); });
@@ -2496,6 +2584,83 @@
     else showNotice('MP3の書き出しに失敗しました', '原因：' + (outcome.err && outcome.err.message ? outcome.err.message : outcome.err) + '\n編集内容はそのまま残っています。');
   }
 
+  // MediaRecorderで作ったWebMには長さ（Duration）が入っておらず、Androidのギャラリーや一部のプレーヤーで再生できないことがある。
+  // ファイルの先頭の Info に Duration を書き足して、長さを持つWebMにする（失敗したら元のファイルをそのまま返す）
+  async function fixWebmDuration(blob, durSec){
+    try{
+      if(!(durSec > 0)) return blob;
+      const head = new Uint8Array(await blob.slice(0, 131072).arrayBuffer());
+      function readId(p){
+        const b = head[p]; if(b===undefined || b===0) return null;
+        let len = 1, mask = 0x80; while(len <= 4 && !(b & mask)){ len++; mask >>= 1; }
+        if(len > 4 || p+len > head.length) return null;
+        let id = 0; for(let i=0;i<len;i++) id = id*256 + head[p+i];
+        return { id:id, len:len };
+      }
+      function readSize(p){
+        const b = head[p]; if(b===undefined || b===0) return null;
+        let len = 1, mask = 0x80; while(!(b & mask)){ len++; mask >>= 1; }
+        if(len > 8 || p+len > head.length) return null;
+        let v = b & (mask-1), ones = (b & (mask-1)) === (mask-1);
+        for(let i=1;i<len;i++){ const x = head[p+i]; if(x !== 0xFF) ones = false; v = v*256 + x; }
+        return { size: ones ? -1 : v, len:len };
+      }
+      let p = 0;
+      const eb = readId(p); if(!eb || eb.id !== 0x1A45DFA3) return blob;
+      const ebs = readSize(p+eb.len); if(!ebs || ebs.size < 0) return blob;
+      p += eb.len + ebs.len + ebs.size;
+      const seg = readId(p); if(!seg || seg.id !== 0x18538067) return blob;
+      const segSizePos = p + seg.len, ss = readSize(segSizePos); if(!ss) return blob;
+      p = segSizePos + ss.len;
+      let info = null;
+      while(p < head.length){
+        const id = readId(p); if(!id) break;
+        const sz = readSize(p+id.len); if(!sz || sz.size < 0) break;
+        const ds = p + id.len + sz.len;
+        if(id.id === 0x1549A966){ info = { start:p, ds:ds, size:sz.size, total:id.len+sz.len+sz.size }; break; }
+        if(id.id === 0x1F43B675) break;   // Cluster まで来たら Info は無い
+        p = ds + sz.size;
+      }
+      if(!info || info.ds + info.size > head.length) return blob;
+      let scale = 1000000, durPos = -1, durLen = 0;
+      let q = info.ds; const qe = info.ds + info.size;
+      while(q < qe){
+        const id = readId(q); if(!id) break;
+        const sz = readSize(q+id.len); if(!sz || sz.size < 0) break;
+        const ds = q + id.len + sz.len;
+        if(id.id === 0x2AD7B1){ let v = 0; for(let i=0;i<sz.size;i++) v = v*256 + head[ds+i]; if(v) scale = v; }
+        if(id.id === 0x4489){ durPos = ds; durLen = sz.size; }
+        q = ds + sz.size;
+      }
+      const value = durSec * 1e9 / scale;
+      const infoEnd = info.ds + info.size;
+      if(durPos >= 0){
+        if(durLen !== 4 && durLen !== 8) return blob;
+        const dv = new DataView(head.buffer);
+        const cur = durLen === 8 ? dv.getFloat64(durPos) : dv.getFloat32(durPos);
+        if(cur > 0) return blob;   // すでに長さが入っている
+        if(durLen === 8) dv.setFloat64(durPos, value); else dv.setFloat32(durPos, value);
+        return new Blob([head.subarray(0, infoEnd), blob.slice(infoEnd)], { type: blob.type });
+      }
+      const dur = new Uint8Array(11);
+      dur[0] = 0x44; dur[1] = 0x89; dur[2] = 0x88; new DataView(dur.buffer).setFloat64(3, value);
+      const newSize = info.size + dur.length;
+      const hdr = new Uint8Array(12);
+      hdr[0] = 0x15; hdr[1] = 0x49; hdr[2] = 0xA9; hdr[3] = 0x66; hdr[4] = 0x01;
+      for(let i=0;i<7;i++) hdr[5+i] = Math.floor(newSize / Math.pow(2, 8*(6-i))) & 0xFF;
+      const before = head.slice(0, info.start);
+      if(ss.size >= 0){
+        // Segment のサイズが確定している場合は、増えた分だけ書き換える（桁数が足りなければ諦める）
+        const newSeg = ss.size + (hdr.length + newSize) - info.total;
+        if(newSeg >= Math.pow(2, 7*ss.len) - 1) return blob;
+        let v = newSeg;
+        for(let i=ss.len-1;i>=0;i--){ before[segSizePos+i] = v % 256; v = Math.floor(v/256); }
+        before[segSizePos] |= (0x80 >> (ss.len-1));
+      }
+      return new Blob([before, hdr, head.subarray(info.ds, infoEnd), dur, blob.slice(infoEnd)], { type: blob.type });
+    }catch(e){ return blob; }
+  }
+
   async function runExport(){
     if(state.exporting) return;
     if(!state.clips.length && !state.telops.length){ alert('先に動画・音声を追加してください'); return; }
@@ -2557,6 +2722,7 @@
         if(!state.cancelExport) updateLoading('書き出し中... ' + Math.round(frac*100) + '%' + etaText);
       }, 300);
 
+      const recStart = performance.now();
       recorder.start();
       await new Promise(function(resolve){
         state.isPlaying = true; setPlayIcon(true);
@@ -2593,7 +2759,8 @@
       else {
         const usedMime = (recorder.mimeType || mime || '');
         const actualExt = usedMime.indexOf('mp4')>=0 ? 'mp4' : 'webm';
-        const blob = new Blob(chunks, {type: actualExt==='mp4' ? 'video/mp4' : 'video/webm'});
+        let blob = new Blob(chunks, {type: actualExt==='mp4' ? 'video/mp4' : 'video/webm'});
+        if(actualExt==='webm') blob = await fixWebmDuration(blob, (performance.now()-recStart)/1000);   // 長さを書き足して、スマホでも再生できるWebMにする
         const filename = deriveFilename(actualExt);
         downloadBlob(blob, filename);
         outcome = {type:'ok', filename:filename, ext:actualExt, size:blob.size};
@@ -2647,6 +2814,8 @@
 
   async function init(){
     computeTimelineDuration(); renderClipList(); renderTimeline(); renderPropsPanel();
+    // Android（Chromeなど）でMP4書き出しに対応していれば、再生できる端末が多いMP4を初期値にする
+    if(/Android/i.test(navigator.userAgent) && window.MediaRecorder && MediaRecorder.isTypeSupported('video/mp4')) state.exportFormat = 'mp4';
     renderFormatChips();
     setupReveal();
     await checkSavedProject();
